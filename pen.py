@@ -406,7 +406,11 @@ class Toolbar(QFrame):
         add_btn("✏️", lambda: self.canvas.set_tool("pen"))
         self.size_label = add_btn(f"{self.canvas.pen_size}px", lambda: None, 55)
         add_btn("➖", lambda: self.canvas.set_tool("line"))
-        add_btn("⬛", lambda: self.canvas.set_tool("rect"))
+        self.color_btn = QPushButton()
+        self.color_btn.setFixedSize(40, 40)
+        self.color_btn.setStyleSheet("background-color: white; border-radius: 6px;")
+        self.color_btn.clicked.connect(lambda: self.canvas.set_tool("pen"))
+        layout.addWidget(self.color_btn)
         add_btn("↩", self.canvas.undo)
         add_btn("🧹", self.canvas.clear)
         add_btn("❌", close_callback)
@@ -446,7 +450,7 @@ class Window(QWidget):
     def wheelEvent(self, event):
         delta = event.angleDelta().y()
 
-        change = 4
+        change = 2
 
         if delta > 0:
             self.canvas.pen_size = min(50, self.canvas.pen_size + change)
@@ -482,7 +486,15 @@ class Window(QWidget):
 
     def resizeEvent(self, event):
         self.canvas.setGeometry(self.rect())
-        self.toolbar.move((self.width() - self.toolbar.width()) // 2, 10)
+        # ⭐ 讓 toolbar 依照 layout 自動重算寬度
+        self.toolbar.adjustSize()
+
+        # Canvas 全螢幕鋪滿
+        self.canvas.setGeometry(self.rect())
+
+        # ⭐ 置中 Toolbar
+        tw = self.toolbar.width()
+        self.toolbar.move((self.width() - tw) // 2, 10)
 
     # ================= 快捷鍵 ==================
     def build_shortcuts(self):
@@ -495,6 +507,12 @@ class Window(QWidget):
             self.color_index = (self.color_index + 1) % len(self.color_cycle)
             self.canvas.set_color_tuple(self.color_cycle[self.color_index])
             self.canvas.set_tool("pen")
+
+            # 更新 Toolbar 色塊
+            r, g, b = self.color_cycle[self.color_index]
+            self.toolbar.color_btn.setStyleSheet(
+                f"background-color: rgb({r},{g},{b}); border-radius:6px;"
+            )
 
         # 螢光筆模式
         def highlight_toggle():
