@@ -1,6 +1,6 @@
 # type: ignore
 from PySide2.QtCore import Qt, QRect, QPoint
-from PySide2.QtGui import QColor, QPainter, QPen, QCursor
+from PySide2.QtGui import QColor, QPainter, QPen, QCursor, QKeySequence
 from PySide2.QtWidgets import (
     QApplication,
     QWidget,
@@ -8,6 +8,7 @@ from PySide2.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QShortcut,
+    QMenu,
 )
 from PySide2.QtGui import QKeySequence
 import math
@@ -382,8 +383,9 @@ class Toolbar(QFrame):
             QPushButton {
                 color: white;
                 font-family: 'Segoe UI Emoji';
-                font-size: 20px;
+                font-size: 22px;
                 border: none;
+                padding: 6px;
             }
             QPushButton:hover {
                 background-color: rgba(255,255,255,40);
@@ -393,27 +395,137 @@ class Toolbar(QFrame):
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(12)
+        layout.setSpacing(8)
 
-        def add_btn(text, slot, w=40):
-            btn = QPushButton(text)
+        # -------------------------------------------------------
+        # 工具按鈕生成（固定寬度，靠 emoji，無文字）
+        # -------------------------------------------------------
+        def add_btn(emoji, w=40):
+            btn = QPushButton(emoji)
             btn.setFixedSize(w, 40)
-            btn.clicked.connect(slot)
             layout.addWidget(btn)
             return btn
 
-        add_btn("🖼️", parent.toggle_board)
-        add_btn("✏️", lambda: self.canvas.set_tool("pen"))
-        self.size_label = add_btn(f"{self.canvas.pen_size}px", lambda: None, 55)
-        add_btn("➖", lambda: self.canvas.set_tool("line"))
-        self.color_btn = QPushButton()
-        self.color_btn.setFixedSize(40, 40)
-        self.color_btn.setStyleSheet("background-color: white; border-radius: 6px;")
-        self.color_btn.clicked.connect(lambda: self.canvas.set_tool("pen"))
-        layout.addWidget(self.color_btn)
-        add_btn("↩", self.canvas.undo)
-        add_btn("🧹", self.canvas.clear)
-        add_btn("❌", close_callback)
+        # -------------------------------------------------------
+        # 📘 黑板（無下拉）
+        # -------------------------------------------------------
+        btn_board = add_btn("📘", 40)
+        btn_board.clicked.connect(parent.toggle_board)
+
+        # -------------------------------------------------------
+        # 🧽 橡皮擦 ▼
+        # -------------------------------------------------------
+        btn_eraser = add_btn("🧽 ▼", 60)
+        eraser_menu = QMenu(self)
+
+        eraser_menu.addAction(
+            "圓形橡皮擦",
+            lambda: (
+                canvas.set_tool("eraser"),
+                canvas.__setattr__("erase_type", "circle"),
+                canvas.__setattr__("pen_size", 30),
+            ),
+        )
+        eraser_menu.addAction(
+            "矩形橡皮擦",
+            lambda: (
+                canvas.set_tool("eraser"),
+                canvas.__setattr__("erase_type", "rect"),
+                canvas.__setattr__("pen_size", 20),
+            ),
+        )
+        btn_eraser.setMenu(eraser_menu)
+
+        # -------------------------------------------------------
+        # ✏️ 筆刷 ▼
+        # -------------------------------------------------------
+        btn_brush = add_btn("✏️ ▼", 60)
+        brush_menu = QMenu(self)
+
+        brush_menu.addAction(
+            "普通筆",
+            lambda: (
+                canvas.set_tool("pen"),
+                canvas.__setattr__("highlight_mode", False),
+                canvas.__setattr__("pen_size", 4),
+                canvas.set_color_tuple((255, 255, 255)),
+            ),
+        )
+        brush_menu.addAction(
+            "螢光筆",
+            lambda: (
+                canvas.set_tool("pen"),
+                canvas.__setattr__("highlight_mode", True),
+                canvas.__setattr__("pen_size", 20),
+                canvas.set_color_tuple((255, 255, 0)),
+            ),
+        )
+        btn_brush.setMenu(brush_menu)
+
+        # -------------------------------------------------------
+        # ⬛ 形狀 ▼
+        # -------------------------------------------------------
+        btn_shape = add_btn("⬛ ▼", 60)
+        shape_menu = QMenu(self)
+
+        shape_menu.addAction("自由筆", lambda: canvas.set_tool("pen"))
+        shape_menu.addAction("直線", lambda: canvas.set_tool("line"))
+        shape_menu.addAction("矩形", lambda: canvas.set_tool("rect"))
+
+        btn_shape.setMenu(shape_menu)
+
+        # -------------------------------------------------------
+        # 📏 大小 ▼
+        # -------------------------------------------------------
+        btn_size = add_btn("📏 ▼", 60)
+        size_menu = QMenu(self)
+
+        for s in [2, 4, 6, 8, 10, 15, 20, 30]:
+            size_menu.addAction(
+                f"{s}px", lambda _, v=s: canvas.__setattr__("pen_size", v)
+            )
+
+        btn_size.setMenu(size_menu)
+
+        # -------------------------------------------------------
+        # 🎨 顏色 ▼
+        # -------------------------------------------------------
+        btn_color = add_btn("🎨 ▼", 60)
+        color_menu = QMenu(self)
+
+        colors = {
+            "白": (255, 255, 255),
+            "灰": (136, 136, 136),
+            "紅": (255, 0, 0),
+            "橙": (255, 136, 0),
+            "黃": (255, 255, 0),
+            "綠": (0, 255, 0),
+            "藍": (0, 128, 255),
+            "紫": (170, 85, 255),
+        }
+
+        for name, rgb in colors.items():
+            color_menu.addAction(name, lambda _, c=rgb: canvas.set_color_tuple(c))
+
+        btn_color.setMenu(color_menu)
+
+        # -------------------------------------------------------
+        # ↩ Undo
+        # -------------------------------------------------------
+        btn_undo = add_btn("↩", 40)
+        btn_undo.clicked.connect(canvas.undo)
+
+        # -------------------------------------------------------
+        # 🧹 Clear
+        # -------------------------------------------------------
+        btn_clear = add_btn("🧹", 40)
+        btn_clear.clicked.connect(canvas.clear)
+
+        # -------------------------------------------------------
+        # ❌ Close
+        # -------------------------------------------------------
+        btn_close = add_btn("❌", 40)
+        btn_close.clicked.connect(close_callback)
 
 
 # ============================== Window ==============================
