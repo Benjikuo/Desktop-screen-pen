@@ -68,14 +68,14 @@ class Canvas(QWidget):
         self.size_popup_pos = None
         self.size_popup_value = None
         self.size_popup_timer = 0
-        self.highlight_mode = False  # ✨螢光筆模式
 
     # =============== 顏色設定（自動依模式套用透明度） ===============
 
     def set_color_tuple(self, rgb_tuple):
         r, g, b = rgb_tuple
 
-        if self.highlight_mode:
+        if self.tool == "highlight":
+
             a = 40  # ✨螢光筆透明度
         else:
             a = 255  # 一般筆
@@ -363,6 +363,8 @@ class Toolbar(QFrame):
         self.canvas = canvas
 
         self.setFixedHeight(60)
+        self.color_btn = QPushButton()  # 只是給程式用，不顯示也可以
+        self.size_label = QPushButton()  # 只是 placeholder，避免報錯
 
         self.setStyleSheet(
             """
@@ -421,7 +423,7 @@ class Toolbar(QFrame):
             lambda: (
                 canvas.set_tool("eraser"),
                 canvas.__setattr__("erase_type", "rect"),
-                canvas.__setattr__("pen_size", 20),
+                canvas.__setattr__("thickness", 20),
             ),
         )
         btn_eraser.setMenu(eraser_menu)
@@ -436,7 +438,6 @@ class Toolbar(QFrame):
             "普通筆",
             lambda: (
                 canvas.set_tool("pen"),
-                canvas.__setattr__("highlight_mode", False),
                 canvas.__setattr__("pen_size", 4),
                 canvas.set_color_tuple((255, 255, 255)),
             ),
@@ -445,7 +446,6 @@ class Toolbar(QFrame):
             "螢光筆",
             lambda: (
                 canvas.set_tool("pen"),
-                canvas.__setattr__("highlight_mode", True),
                 canvas.__setattr__("pen_size", 20),
                 canvas.set_color_tuple((255, 255, 0)),
             ),
@@ -555,15 +555,15 @@ class Window(QWidget):
         change = 2
 
         if delta > 0:
-            self.canvas.width = min(50, self.canvas.width + change)
+            self.canvas.thickness = min(50, self.canvas.thickness + change)
         else:
-            self.canvas.width = max(2, self.canvas.width - change)
+            self.canvas.thickness = max(2, self.canvas.thickness - change)
 
-        self.toolbar.size_label.setText(f"{self.canvas.width}px")
+        self.toolbar.size_label.setText(f"{self.canvas.thickness}px")
 
         # popup
         self.canvas.show_size_popup(
-            self.mapFromGlobal(QCursor.pos()), self.canvas.width
+            self.mapFromGlobal(QCursor.pos()), self.canvas.thickness
         )
         self.canvas.update()
 
@@ -596,7 +596,7 @@ class Window(QWidget):
 
         # ⭐ 置中 Toolbar
         tw = self.toolbar.width()
-        self.toolbar.move((self.pen_size() - tw) // 2, 10)
+        self.toolbar.move((self.width() - tw) // 2, 10)
 
     # ================= 快捷鍵 ==================
     def build_shortcuts(self):
@@ -618,14 +618,18 @@ class Window(QWidget):
 
         # 螢光筆模式
         def highlight_toggle():
-            self.canvas.highlight_mode = not self.canvas.highlight_mode
-
-            if self.canvas.highlight_mode:
-                self.canvas.width = 20
+            if self.canvas.tool != "pen":
+                self.canvas.set_tool("pen")
             else:
-                self.canvas.width = 6
+                self.canvas.set_tool("highlight")
 
-            self.toolbar.size_label.setText(f"{self.canvas.width}px")
+            if self.canvastool == "highlight":
+
+                self.canvas.thickness = 20
+            else:
+                self.canvas.thickness = 6
+
+            self.toolbar.size_label.setText(f"{self.canvas.thickness}px")
             self.canvas.set_color_tuple(self.color_cycle[self.color_index])
 
         # ==== 快捷鍵 ====
@@ -633,8 +637,7 @@ class Window(QWidget):
         sc(
             "A",
             lambda: (
-                setattr(self.canvas, "highlight_mode", False),
-                setattr(self.canvas, "pen_size", 6),
+                setattr(self.canvas, "thickness", 6),
                 self.canvas.set_color_tuple((255, 255, 255)),
                 self.canvas.set_tool("pen"),
                 self.toolbar.size_label.setText("6px"),
@@ -644,8 +647,7 @@ class Window(QWidget):
         sc(
             "Q",
             lambda: (
-                setattr(self.canvas, "highlight_mode", False),
-                setattr(self.canvas, "pen_size", 6),
+                setattr(self.canvas, "thickness", 6),
                 self.canvas.set_color_tuple((255, 0, 0)),
                 self.canvas.set_tool("rect"),
                 self.toolbar.size_label.setText("6px"),

@@ -57,3 +57,14 @@
 - 🟦 藍 
 - 🟪 紫 
 - ⬜ 灰
+
+Keyboard shortcut
+w: board
+e: eraser
+r: red ragtengle
+s: free wite pen
+d: undo
+f: redo
+x: clear
+c: color toggle
+v: tool toggle
