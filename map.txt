@@ -3,8 +3,12 @@
 - 記憶上次畫畫
 - 筆刷顯示
 - GPU
-- toolbar 符號 svgs
 - drag down / icon + English
+
+先來解決：
+- 不要 self.highlight_mode = False
+- 改掉 Toolbar 多於設定
+- toolbar 圖案改 svg
 
 工具列設定：
 黑板、筆刷 / 橡皮、大小、形狀、顏色、返回、重做、清除、關閉
