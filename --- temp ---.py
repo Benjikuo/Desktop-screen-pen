@@ -393,20 +393,6 @@ class Canvas(QOpenGLWidget):
         else:
             self.setCursor(Qt.CrossCursor)
 
-    def set_rec(self):
-        self.set("pen", shape="rect", color="red")
-
-    def set_high(self):
-        self.set_tool("highlight")
-
-    def set_pen(self):
-        self.set_tool("pen")
-
-    def set_last(self):
-        # 恢復上次使用的工具
-        if self.last_used["tool"] and self.last_used["tool"] != self.tool:
-            self.set_tool(self.last_used["tool"])
-
     def set_color_tuple(self, rgb_tuple):
         """設定顏色"""
         # 找到對應的顏色索引
@@ -480,6 +466,29 @@ class Canvas(QOpenGLWidget):
 
         self.update()
 
+    def shape_toggle(self):
+        if self.tool != "pen":
+            self.set_tool("pen")
+        else:
+            self.set_tool("highlight")
+        self.update()
+
+    def color_toggle(self):
+        self.color_index = (self.color_index + 1) % len(self.color_cycle)
+        self.settings[self.tool]["color"] = self.color_index
+        self.set_tool("pen")
+        self.update()
+
+    def set_pen(self):
+        self.set_tool("pen")
+
+    def set_high(self):
+        self.set_tool("highlight")
+
+    def set_rec(self):
+        self.set_tool("pen")
+        self.set_shape("rect")
+
     def toggle_eraser(self):
         if self.tool == "eraser":
             # 恢復上次使用的工具
@@ -488,18 +497,10 @@ class Canvas(QOpenGLWidget):
         else:
             self.set_tool("eraser")
 
-    def toggle_shape(self):
-        if self.tool != "pen":
-            self.set_tool("pen")
-        else:
-            self.set_tool("highlight")
-        self.update()
-
-    def toggle_color(self):
-        self.color_index = (self.color_index + 1) % len(self.color_cycle)
-        self.settings[self.tool]["color"] = self.color_index
-        self.set_tool("pen")
-        self.update()
+    def set_last(self):
+        # 恢復上次使用的工具
+        if self.last_used["tool"] and self.last_used["tool"] != self.tool:
+            self.set_tool(self.last_used["tool"])
 
 
 class Toolbar(QFrame):
@@ -532,7 +533,7 @@ class Toolbar(QFrame):
         layout.setContentsMargins(BAR_SPACE, BAR_SPACE, BAR_SPACE, BAR_SPACE)
         layout.setSpacing(BAR_SPACE)
 
-        def button(icon_path, scale):
+        def add_btn(icon_path, scale):
             btn = QPushButton()
             btn.setIcon(get_icon(icon_path))
             btn.setFixedSize(BUTTON_SIZE, BUTTON_SIZE)
@@ -540,190 +541,9 @@ class Toolbar(QFrame):
             layout.addWidget(btn)
             return btn
 
-        btn_board = button("board.svg", 0.8)
+        btn_board = add_btn("board.svg", 0.8)
         btn_board.clicked.connect(canvas.toggle_board)
 
-        btn_tool = button("tools/pen.svg", 0.8)
-        btn_size = button(" ", 0.8)
-        btn_shape = button(" ", 0.8)
-        btn_color = button(" ", 0.8)
-        btn_save = button("save.svg", 0.8)
-        btn_undo = button("undo.svg", 0.9)
-        btn_redo = button("redo.svg", 0.9)
-        btn_clear = button("clear.svg", 0.8)
-
-        btn_close = button("close.svg", 0.9)
-        btn_close.clicked.connect(self.window().close)
-
-        # pen_menu = QMenu(self)
-        # pen_menu.addAction(
-        #     "普通筆",
-        #     lambda: (
-        #         canvas.set_tool("pen"),
-        #         canvas.set_thickness(4),
-        #         self.update_size_menu(),
-        #     ),
-        # )
-        # pen_menu.addAction(
-        #     "螢光筆",
-        #     lambda: (
-        #         canvas.set_tool("highlight"),
-        #         canvas.set_thickness(20),
-        #         self.update_size_menu(),
-        #     ),
-        # )
-
-        # btn_shape = add_btn("tools/pen.svg", 1)
-        # shape_menu = QMenu(self)
-        # shape_menu.addAction("自由筆", lambda: canvas.set_shape("free"))
-        # shape_menu.addAction("直線", lambda: canvas.set_shape("line"))
-        # shape_menu.addAction("矩形", lambda: canvas.set_shape("rect"))
-        # btn_shape.setMenu(shape_menu)
-
-        # self.size_label = QPushButton(f"{canvas.thickness}px")
-        # self.size_label.setFixedSize(60, 40)
-        # self.size_label.setStyleSheet("font-size: 16px; color: white;")
-        # layout.addWidget(self.size_label)
-
-        # self.update_size_menu()
-
-        # self.color_btn = QPushButton()
-        # self.color_btn.setFixedSize(40, 40)
-        # r, g, b = canvas.color_cycle[canvas.color_index]
-        # self.color_btn.setStyleSheet(
-        #     f"background-color: rgb({r},{g},{b}); border-radius:6px;"
-        # )
-        # layout.addWidget(self.color_btn)
-
-        # color_menu = QMenu(self)
-        # colors = {
-        #     "白": (255, 255, 255),
-        #     "灰": (136, 136, 136),
-        #     "紅": (255, 0, 0),
-        #     "橙": (255, 136, 0),
-        #     "黃": (255, 255, 0),
-        #     "綠": (0, 255, 0),
-        #     "藍": (0, 128, 255),
-        #     "紫": (170, 85, 255),
-        # }
-
-        # for name, rgb in colors.items():
-        #     color_menu.addAction(
-        #         name,
-        #         lambda _, c=rgb: (canvas.set_color_tuple(c), self.update_color_btn()),
-        #     )
-        # self.color_btn.setMenu(color_menu)
-
-        # btn_undo = add_btn("tools/undo.svg", 40)
-        # btn_undo.clicked.connect(canvas.undo)
-
-        # btn_clear = add_btn("tools/clear.svg", 40)
-        # btn_clear.clicked.connect(canvas.clear)
-
-        # btn_save = add_btn("tools/save.svg", 40)
-
-        # btn_close = add_btn("tools/close.svg", 40)
-
-    def update_color_btn(self):
-        """更新顏色按鈕的顯示"""
-        color_idx = self.canvas.settings[self.canvas.tool]["color"]
-        if color_idx is not None:
-            r, g, b = self.canvas.color_cycle[color_idx]
-            self.color_btn.setStyleSheet(
-                f"background-color: rgb({r},{g},{b}); border-radius:6px;"
-            )
-
-    def update_size_menu(self):
-        """根據當前工具更新大小選單"""
-        size_menu = QMenu(self)
-
-        # 根據工具類型選擇對應的圖示資料夾
-        tool_map = {
-            "pen": "pen_size",
-            "highlight": "highlight_size",
-            "eraser": "eraser_size",
-        }
-
-        icon_folder = tool_map.get(self.canvas.tool, "pen_size")
-
-        # 大小對應的圖示編號 (1-5 對應不同大小)
-        size_icon_map = {
-            2: 1,
-            4: 1,
-            6: 2,
-            8: 2,
-            10: 3,
-            15: 4,
-            20: 4,
-            30: 5,
-        }
-
-        for size in [2, 4, 6, 8, 10, 15, 20, 30]:
-            icon_num = size_icon_map.get(size, 1)
-            icon_path = f"{icon_folder}/{icon_folder} ({icon_num}).svg"
-
-            action = size_menu.addAction(get_icon(icon_path), f"{size}px")
-            action.triggered.connect(
-                lambda checked=False, v=size: (
-                    self.canvas.set_thickness(v),
-                    self.size_label.setText(f"{v}px"),
-                )
-            )
-
-        self.size_label.setMenu(size_menu)
-
-
-class Window(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
-        self.setAttribute(Qt.WA_TranslucentBackground)
-
-        self.canvas = Canvas(self)
-        self.toolbar = Toolbar(self, self.canvas)
-        self.toolbar.raise_()
-
-        def shortcut(key, func):
-            QShortcut(QKeySequence(key), self, activated=func)
-
-        shortcut("W", self.canvas.toggle_board)
-        shortcut("E", self.canvas.toggle_eraser)
-        shortcut("D", self.canvas.set_last)
-        shortcut("R", self.canvas.set_rec)
-        shortcut("F", self.canvas.set_pen)
-        shortcut("V", self.canvas.set_high)
-        shortcut("C", self.canvas.toggle_color)
-        shortcut("S", self.canvas.toggle_shape)
-        shortcut("X", self.canvas.clear)
-
-        self.showFullScreen()
-
-    def wheelEvent(self, event):
-        delta = event.angleDelta().y()
-        change = 2
-
-        if delta > 0:
-            new_size = min(50, self.canvas.thickness + change)
-        else:
-            new_size = max(2, self.canvas.thickness - change)
-
-        # self.canvas.set_thickness(new_size)
-        # self.toolbar.size_label.setStyleSheet("font-size: 20px; color: white;")
-        # self.toolbar.size_label.setText(f"{new_size}px")
-        # self.canvas.show_size_popup(self.mapFromGlobal(QCursor.pos()), new_size)
-
-    def resizeEvent(self, event=None):
-        self.canvas.setGeometry(self.rect())
-        self.toolbar.adjustSize()
-        self.toolbar.move((self.width() - self.toolbar.width()) // 2, 20)
-
-    def closeEvent(self, event=None):
-        QApplication.instance().quit()
-
-
-if __name__ == "__main__":
-    app = QApplication([])
-    w = Window()
-    w.show()
-    app.exec_()
+        btn_tool = add_btn("tools/pen.svg", 0.8)
+        btn_size = add_btn(" ", 0.8)
+        btn_shape = add_btn(" ", 0.8)

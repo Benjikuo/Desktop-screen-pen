@@ -13,6 +13,8 @@
 工具列設定：
 黑板、筆刷 / 橡皮、大小、形狀、顏色、返回、重做、清除、關閉
 1     2           3     4    5     6    7    8       9
+board tool size shape color undo redo clear close
+
 
 橡皮控制：
 圓、方，圓橡皮擦預設30
