@@ -13,6 +13,8 @@ from PySide2.QtWidgets import (
 from PySide2.QtGui import QKeySequence
 import math
 
+HIGHLIGHT_ALPHA = 40  # 螢光筆透明度
+
 
 def dist(a, b):
     return math.hypot(a.x() - b.x(), a.y() - b.y())
@@ -50,86 +52,73 @@ class Canvas(QWidget):
         self.drawing_mode = True
         self.setCursor(Qt.CrossCursor)
 
+        # white / red / orange / yellow / green / blue / purple
+        self.color_cycle = [
+            (255, 255, 255),
+            (255, 0, 0),
+            (255, 136, 0),
+            (255, 255, 0),
+            (0, 255, 0),
+            (0, 128, 255),
+            (170, 85, 255),
+        ]
+        self.color_index = 0
+
         self.board_color = (0, 0, 0, 50)
         self.tool = "pen"
-        self.thickness = 4
-        self.shape = "free"
-        self.pen_color = QColor(255, 255, 255, 255)
+        self.settings = {
+            "pen": {"size": 4, "shape": "free", "color": 1},
+            "highlight": {"size": 10, "shape": "free", "color": 3},
+            "eraser": {"size": 30, "shape": None, "color": None},
+        }
+        self.last_used_tool = {"tool": None, "size": None, "shape": None, "color": None}
 
         self.start_pos = None
         self.last_pos = None
         self.current_stroke = []
         self.history = []
 
-        self.eraser_pos = None
         self.setMouseTracking(True)
+        self.eraser_pos = None
         self.size_popup_pos = None
         self.size_popup_value = None
         self.size_popup_timer = 0
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.RightButton:
-            self.drawing_mode = not self.drawing_mode
-            self.setCursor(Qt.CrossCursor if self.drawing_mode else Qt.ArrowCursor)
-            if not self.drawing_mode:
-                self.board_color = (0, 0, 0, 0)
-            else:
-                self.board_color = (0, 0, 0, 50)
-            self.update()
-            return
-
-        if not self.drawing_mode:
-            return
-
-        pos = event.pos()
-
-        if event.button() == Qt.LeftButton:
-
-            if self.tool == "eraser":
-                self.erase_at(pos)
-                return
-
+        if event.button() == Qt.LeftButton and self.drawing_mode:
+            pos = event.pos()
             self.start_pos = pos
             self.last_pos = pos
             self.current_stroke = [pos]
 
-        if event.button() == Qt.MiddleButton:
+        elif event.button() == Qt.MiddleButton:
             self.window().close()
-            return
+
+        elif event.button() == Qt.RightButton:
+            self.toggle_board()
 
     def mouseMoveEvent(self, event):
+        if event.buttons() != Qt.LeftButton or not self.drawing_mode:
+            return
+
         pos = event.pos()
-        self.eraser_pos = pos
 
-        if not self.drawing_mode:
-            self.update()
-            return
-
-        # 橡皮擦
         if self.tool == "eraser":
-            if event.buttons() & Qt.LeftButton:
-                self.erase_at(pos)
-            self.update()
-            return
+            self.erase_at(pos)
 
-        # 畫筆
-        if not (event.buttons() & Qt.LeftButton):
-            self.update()
-            return
+        elif self.tool == "crop_eraser":
+            self.erase_at(pos)
 
-        if self.tool == "pen":
-            self.current_stroke.append(pos)
-
-        elif self.tool in ("line", "rect"):
-            self.last_pos = pos
+        else:
+            if self.shape == "free":
+                self.current_stroke.append(pos)
+            elif self.shape in ("line", "rect"):
+                self.last_pos = pos
 
         self.update()
 
     def mouseReleaseEvent(self, event):
-        if not self.drawing_mode or event.button() != Qt.LeftButton:
-            return
-
-        if self.tool == "eraser":
+        if event.button() != Qt.LeftButton or not self.drawing_mode:
             return
 
         if self.tool == "pen" and len(self.current_stroke) > 1:
@@ -169,36 +158,27 @@ class Canvas(QWidget):
         self.last_pos = None
         self.update()
 
-    def draw_background(self, painter):
-        r, g, b, a = self.board_color
-        painter.fillRect(self.rect(), QColor(r, g, b, a))
+    def set_tool(self, tool):
+        self.tool = tool
 
-    def draw_item(self, painter, item):
-        t = item["type"]
-        pen = QPen(item["color"])
-        pen.setWidth(item["width"])
-        pen.setCapStyle(Qt.RoundCap)
-        painter.setPen(pen)
+        # 橡皮擦隱藏游標
+        if tool == "eraser":
+            self.setCursor(Qt.BlankCursor)
+        else:
+            self.setCursor(Qt.CrossCursor)
 
-        if t == "pen":
-            pts = item["points"]
-            for i in range(1, len(pts)):
-                painter.drawLine(pts[i - 1], pts[i])
+    def set_thickness(self, size):
+        self.thickness = size
 
-        elif t == "line":
-            painter.drawLine(item["start"], item["end"])
-
-        elif t == "rect":
-            painter.drawRect(item["rect"])
-
-    # =============== 顏色設定（自動依模式套用透明度） ===============
+    def set_shape(self, shape):
+        self.shape = shape
 
     def set_color_tuple(self, rgb_tuple):
         r, g, b = rgb_tuple
 
         if self.tool == "highlight":
 
-            a = 40  # ✨螢光筆透明度
+            a = HIGHLIGHT_ALPHA
         else:
             a = 255  # 一般筆
 
@@ -210,15 +190,6 @@ class Canvas(QWidget):
     def clear(self):
         self.history = []
         self.update()
-
-    def set_tool(self, tool):
-        self.tool = tool
-
-        # 橡皮擦隱藏游標
-        if tool == "eraser":
-            self.setCursor(Qt.BlankCursor)
-        else:
-            self.setCursor(Qt.CrossCursor)
 
     def undo(self):
         if self.history:
@@ -264,11 +235,30 @@ class Canvas(QWidget):
 
     # ================= Paint =========================
 
+    def draw_item(self, painter, item):
+        t = item["type"]
+        pen = QPen(item["color"])
+        pen.setWidth(item["width"])
+        pen.setCapStyle(Qt.RoundCap)
+        painter.setPen(pen)
+
+        if t == "pen":
+            pts = item["points"]
+            for i in range(1, len(pts)):
+                painter.drawLine(pts[i - 1], pts[i])
+
+        elif t == "line":
+            painter.drawLine(item["start"], item["end"])
+
+        elif t == "rect":
+            painter.drawRect(item["rect"])
+
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 
-        self.draw_background(painter)
+        r, g, b, a = self.board_color
+        painter.fillRect(self.rect(), QColor(r, g, b, a))
 
         # 歷史筆畫
         for item in self.history:
@@ -346,19 +336,63 @@ class Canvas(QWidget):
             painter.setPen(pen)
             painter.drawRect(self.rect())
 
-    # ================= Draw =========================
+    def toggle_board(self):
+        self.drawing_mode = not self.drawing_mode
+        self.setCursor(Qt.CrossCursor if self.drawing_mode else Qt.ArrowCursor)
+        if not self.drawing_mode:
+            self.board_color = (0, 0, 0, 0)
+        else:
+            self.board_color = (0, 0, 0, 50)
+        self.update()
 
+    def toggle_board(self):
+        if self.canvas.board_color == (0, 0, 0, 50):
+            self.canvas.board_color = (0, 0, 0, 255)
+        else:
+            self.canvas.board_color = (0, 0, 0, 50)
 
-# =========================== Toolbar =============================
+        self.canvas.drawing_mode = True
+
+        if self.canvas.tool == "eraser":
+            self.canvas.setCursor(Qt.BlankCursor)
+        else:
+            self.canvas.setCursor(Qt.CrossCursor)
+
+        self.canvas.update()
+
+    def shape_toggle(self):
+        if self.canvas.tool != "pen":
+            self.canvas.set_tool("pen")
+        else:
+            self.canvas.set_tool("highlight")
+        if self.canvas.tool == "highlight":
+            self.canvas.thickness = 20
+        else:
+            self.canvas.thickness = 6
+        self.toolbar.size_label.setText(f"{self.canvas.thickness}px")
+        self.canvas.set_color_tuple(self.color_cycle[self.color_index])
+
+        self.canvas.update()
+
+    def color_toggle(self):
+        self.color_index = (self.color_index + 1) % len(self.color_cycle)
+        self.canvas.set_color_tuple(self.color_cycle[self.color_index])
+        self.canvas.set_tool("pen")
+        # 更新 Toolbar 色塊
+        r, g, b = self.color_cycle[self.color_index]
+        self.toolbar.color_btn.setStyleSheet(
+            f"background-color: rgb({r},{g},{b}); border-radius:6px;"
+        )
+
+    # =========================== Toolbar =============================
 
 
 class Toolbar(QFrame):
-    def __init__(self, parent, canvas, close_callback):
+    def __init__(self, parent, canvas):
         super().__init__(parent)
         self.canvas = canvas
-
         self.setFixedHeight(60)
-        self.color_btn = QPushButton()  # 只是給程式用，不顯示也可以
+
         self.size_label = QPushButton()  # 只是 placeholder，避免報錯
 
         self.setStyleSheet(
@@ -397,7 +431,7 @@ class Toolbar(QFrame):
         # 📘 黑板（無下拉）
         # -------------------------------------------------------
         btn_board = add_btn("📘", 40)
-        btn_board.clicked.connect(parent.toggle_board)
+        btn_board.clicked.connect(canvas.toggle_board)
 
         # -------------------------------------------------------
         # 🧽 橡皮擦 ▼
@@ -407,19 +441,11 @@ class Toolbar(QFrame):
 
         eraser_menu.addAction(
             "圓形橡皮擦",
-            lambda: (
-                canvas.set_tool("eraser"),
-                canvas.__setattr__("erase_type", "circle"),
-                canvas.__setattr__("pen_size", 30),
-            ),
+            lambda: (canvas.set_tool("eraser"),),
         )
         eraser_menu.addAction(
             "矩形橡皮擦",
-            lambda: (
-                canvas.set_tool("eraser"),
-                canvas.__setattr__("erase_type", "rect"),
-                canvas.__setattr__("thickness", 20),
-            ),
+            lambda: (canvas.set_tool("eraser"),),
         )
         btn_eraser.setMenu(eraser_menu)
 
@@ -462,7 +488,7 @@ class Toolbar(QFrame):
         # -------------------------------------------------------
         # 📏 大小 ▼
         # -------------------------------------------------------
-        btn_size = add_btn("📏", 60)
+        btn_thickness = add_btn("📏", 60)
         size_menu = QMenu(self)
 
         for s in [2, 4, 6, 8, 10, 15, 20, 30]:
@@ -470,7 +496,7 @@ class Toolbar(QFrame):
                 f"{s}px", lambda _, v=s: canvas.__setattr__("pen_size", v)
             )
 
-        btn_size.setMenu(size_menu)
+        btn_thickness.setMenu(size_menu)
 
         # -------------------------------------------------------
         # 🎨 顏色 ▼
@@ -510,10 +536,7 @@ class Toolbar(QFrame):
         # ❌ Close
         # -------------------------------------------------------
         btn_close = add_btn("❌", 40)
-        btn_close.clicked.connect(close_callback)
-
-
-# ============================== Window ==============================
+        btn_close.clicked.connect(self.window().close)
 
 
 class Window(QWidget):
@@ -524,29 +547,29 @@ class Window(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground)
 
         self.canvas = Canvas(self)
-        self.toolbar = Toolbar(self, self.canvas, self.closeEvent)
+        self.toolbar = Toolbar(self, self.canvas)
         self.toolbar.raise_()
 
         self.build_shortcuts()
         self.showFullScreen()
 
-        # 顏色（RGB）
-        self.color_cycle = [
-            (255, 255, 255),  # 白
-            (136, 136, 136),  # 灰
-            (255, 0, 0),  # 紅
-            (255, 136, 0),  # 橙
-            (255, 255, 0),  # 黃
-            (0, 255, 0),  # 綠
-            (0, 128, 255),  # 藍
-            (170, 85, 255),  # 紫
-        ]
-        self.color_index = 0
+    def build_shortcuts(self):
 
-    # ========== 滾輪調整筆刷粗細 ==========
+        def shortcut_func(key, func):
+            QShortcut(QKeySequence(key), self, activated=func)
+
+        shortcut_func("W", self.canvas.toggle_board)
+        shortcut_func("E", self.canvas.toggle_eraser)
+        shortcut_func("D", self.canvas.set_last)
+        shortcut_func("R", self.canvas.set_rec)
+        shortcut_func("F", self.canvas.set_pen)
+        shortcut_func("V", self.canvas.set_high)
+        shortcut_func("C", self.canvas.color_toggle)
+        shortcut_func("S", self.canvas.shape_toggle)
+        shortcut_func("X", self.canvas.clear)
+
     def wheelEvent(self, event):
         delta = event.angleDelta().y()
-
         change = 2
 
         if delta > 0:
@@ -554,107 +577,16 @@ class Window(QWidget):
         else:
             self.canvas.thickness = max(2, self.canvas.thickness - change)
 
+        self.toolbar.size_label.setStyleSheet("font-size: 20px; color: white;")
         self.toolbar.size_label.setText(f"{self.canvas.thickness}px")
-
-        # popup
         self.canvas.show_size_popup(
             self.mapFromGlobal(QCursor.pos()), self.canvas.thickness
         )
-        self.canvas.update()
 
-    # ========== 背景切換 ==========
-    def toggle_board(self):
-        # 先切換背景顏色
-        if self.canvas.board_color == (0, 0, 0, 50):
-            self.canvas.board_color = (0, 0, 0, 255)
-        else:
-            self.canvas.board_color = (0, 0, 0, 50)
-
-        # ⭐ 強制回到畫畫模式
-        self.canvas.drawing_mode = True
-
-        # ⭐ 根據工具恢復游標
-        if self.canvas.tool == "eraser":
-            self.canvas.setCursor(Qt.BlankCursor)
-        else:
-            self.canvas.setCursor(Qt.CrossCursor)
-
-        self.canvas.update()
-
-    def resizeEvent(self, event):
+    def resizeEvent(self, event=None):
         self.canvas.setGeometry(self.rect())
-
         self.toolbar.adjustSize()
-        tw = self.toolbar.width()
-        self.toolbar.move((self.width() - tw) // 2, 10)
-
-    # ================= 快捷鍵 ==================
-    def build_shortcuts(self):
-
-        def shortcut_func(key, func):
-            QShortcut(QKeySequence(key), self, activated=func)
-
-        # 顏色循環（RGB）
-        def color_toggle():
-            self.color_index = (self.color_index + 1) % len(self.color_cycle)
-            self.canvas.set_color_tuple(self.color_cycle[self.color_index])
-            self.canvas.set_tool("pen")
-
-            # 更新 Toolbar 色塊
-            r, g, b = self.color_cycle[self.color_index]
-            self.toolbar.color_btn.setStyleSheet(
-                f"background-color: rgb({r},{g},{b}); border-radius:6px;"
-            )
-
-        # 螢光筆模式
-        def highlight_toggle():
-            if self.canvas.tool != "pen":
-                self.canvas.set_tool("pen")
-            else:
-                self.canvas.set_tool("highlight")
-
-            if self.canvas.tool == "highlight":
-
-                self.canvas.thickness = 20
-            else:
-                self.canvas.thickness = 6
-
-            self.toolbar.size_label.setText(f"{self.canvas.thickness}px")
-            self.canvas.set_color_tuple(self.color_cycle[self.color_index])
-
-        # ==== 快捷鍵 ====
-
-        shortcut_func(
-            "A",
-            lambda: (
-                setattr(self.canvas, "thickness", 6),
-                self.canvas.set_color_tuple((255, 255, 255)),
-                self.canvas.set_tool("pen"),
-                self.toolbar.size_label.setText("6px"),
-            ),
-        )
-
-        shortcut_func(
-            "Q",
-            lambda: (
-                setattr(self.canvas, "thickness", 6),
-                self.canvas.set_color_tuple((255, 0, 0)),
-                self.canvas.set_tool("rect"),
-                self.toolbar.size_label.setText("6px"),
-            ),
-        )
-
-        shortcut_func("C", color_toggle)
-        shortcut_func("V", highlight_toggle)
-
-        shortcut_func("X", self.canvas.clear)
-        shortcut_func("Z", self.canvas.undo)
-        shortcut_func("S", lambda: self.canvas.set_tool("rect"))
-        shortcut_func("D", lambda: self.canvas.set_tool("line"))
-        shortcut_func("F", lambda: self.canvas.set_tool("pen"))
-        shortcut_func("W", self.toggle_board)
-        shortcut_func("E", lambda: self.canvas.set_tool("eraser"))
-        shortcut_func("R", self.closeEvent)
+        self.toolbar.move((self.width() - self.toolbar.width()) // 2, 10)
 
     def closeEvent(self, evnet=None):
         QApplication.instance().quit()
