@@ -79,9 +79,9 @@ class Canvas(QOpenGLWidget):
         self.last_used = None
         self.tool = "pen"
         self.settings = {
-            "pen": {"size": 4, "shape": "free", "color": 0},
-            "highlight": {"size": 10, "shape": "free", "color": 3},
-            "eraser": {"size": 30, "shape": None, "color": None},
+            "pen": {"size": 4, "type": "free", "color": 0},
+            "highlight": {"size": 10, "type": "free", "color": 3},
+            "eraser": {"size": 30, "type": None, "color": None},
         }
 
         self.start_pos = None
@@ -124,13 +124,13 @@ class Canvas(QOpenGLWidget):
     @property
     def shape(self):
         """從 settings 取得當前工具的形狀"""
-        s = self.settings[self.tool]["shape"]
+        s = self.settings[self.tool]["type"]
         return s if s is not None else "free"
 
     @shape.setter
     def shape(self, value):
         """設定當前工具的形狀"""
-        self.settings[self.tool]["shape"] = value
+        self.settings[self.tool]["type"] = value
 
     @property
     def pen_color(self):
@@ -191,13 +191,14 @@ class Canvas(QOpenGLWidget):
                     }
                 )
 
-        # 繪製橡皮擦圈圈
         if self.tool == "eraser" and self.eraser_pos:
             self.draw_circle_gl(
-                self.eraser_pos, self.thickness / 2, QColor(255, 120, 0, 255), 2
+                self.eraser_pos,
+                self.thickness / 2,
+                QColor(255, 120, 0, 255),
+                2,
             )
 
-        # 繪製滾輪 popup
         if self.size_popup_value is not None:
             self.draw_circle_gl(
                 self.size_popup_pos,
@@ -206,7 +207,6 @@ class Canvas(QOpenGLWidget):
                 2,
             )
 
-        # popup timer
         if self.size_popup_timer > 0:
             self.size_popup_timer -= 1
         else:
@@ -223,11 +223,10 @@ class Canvas(QOpenGLWidget):
             glVertex2f(self.width(), 0)
             glVertex2f(self.width(), self.height())
             glVertex2f(0, self.height())
-
             glEnd()
 
     def draw_item(self, item):
-        t = item["type"]
+        shape = item["type"]
         color = item["color"]
         width = item["width"]
 
@@ -240,7 +239,7 @@ class Canvas(QOpenGLWidget):
         glColor4f(r, g, b, a)
         glLineWidth(width)
 
-        if t == "pen":
+        if shape == "pen":
             pts = item["points"]
             if len(pts) > 1:
                 glBegin(GL_LINE_STRIP)
@@ -255,28 +254,30 @@ class Canvas(QOpenGLWidget):
                     glVertex2f(p.x(), p.y())
                 glEnd()
 
-        elif t == "line":
+        elif shape == "line":
             start = item["start"]
             end = item["end"]
+
             glBegin(GL_LINES)
             glVertex2f(start.x(), start.y())
             glVertex2f(end.x(), end.y())
             glEnd()
 
-            # 繪製端點
             glPointSize(width)
             glBegin(GL_POINTS)
             glVertex2f(start.x(), start.y())
             glVertex2f(end.x(), end.y())
             glEnd()
 
-        elif t == "rect":
+        elif shape == "rect":
             rect = item["rect"]
+
             glBegin(GL_LINE_LOOP)
             glVertex2f(rect.left(), rect.top())
             glVertex2f(rect.right(), rect.top())
             glVertex2f(rect.right(), rect.bottom())
             glVertex2f(rect.left(), rect.bottom())
+
             glEnd()
 
     def draw_circle_gl(self, pos, radius, color, width):
@@ -310,10 +311,16 @@ class Canvas(QOpenGLWidget):
             self.window().close()
 
         elif event.button() == Qt.RightButton:
-            self.toggle_board()
+            if self.board_color != (0, 0, 0, 0):
+                self.board_color = (0, 0, 0, 0)
+                self.drawing_mode = False
+            else:
+                self.board_color = (0, 0, 0, 50)
+                self.drawing_mode = True
+
+            self.update()
 
     def mouseMoveEvent(self, event):
-        # 更新橡皮擦位置
         if self.tool == "eraser":
             self.eraser_pos = event.pos()
             self.update()
@@ -381,7 +388,7 @@ class Canvas(QOpenGLWidget):
         if tool != self.last_used["tool"] and "eraser" not in tool:
             self.last_used = tool
 
-        for key, value in (("size", size), ("shape", shape), ("color", color)):
+        for key, value in (("size", size), ("type", shape), ("color", color)):
             if value is not None:
                 self.settings[self.tool][key] = value
 
@@ -403,13 +410,10 @@ class Canvas(QOpenGLWidget):
         self.set_tool("pen")
 
     def set_last(self):
-        # 恢復上次使用的工具
         if self.last_used["tool"] and self.last_used["tool"] != self.tool:
             self.set_tool(self.last_used["tool"])
 
     def set_color_tuple(self, rgb_tuple):
-        """設定顏色"""
-        # 找到對應的顏色索引
         try:
             color_idx = self.color_cycle.index(rgb_tuple)
             self.settings[self.tool]["color"] = color_idx
@@ -417,18 +421,23 @@ class Canvas(QOpenGLWidget):
             pass
         self.update()
 
-    # ================= Tool Functions ===================
-
-    def clear(self):
-        self.history = []
-        self.update()
+    def save(self):
+        pass
 
     def undo(self):
         if self.history:
             self.history.pop()
             self.update()
 
-    # =============== 橡皮擦（整筆刪除） ===============
+    def redo(self):
+        pass
+
+    def clear(self):
+        self.history = []
+        self.update()
+
+    def close(self):
+        pass
 
     def erase_at(self, pos):
         r = self.thickness
@@ -457,8 +466,6 @@ class Canvas(QOpenGLWidget):
         self.history = new_history
         self.update()
 
-    # =============== 滾輪 popup ===============
-
     def show_size_popup(self, pos, size):
         self.size_popup_pos = pos
         self.size_popup_value = size
@@ -466,12 +473,12 @@ class Canvas(QOpenGLWidget):
         self.update()
 
     def toggle_board(self):
+        self.drawing_mode = True
+
         if self.board_color == (0, 0, 0, 50):
             self.board_color = (0, 0, 0, 255)
         else:
             self.board_color = (0, 0, 0, 50)
-
-        self.drawing_mode = True
 
         if self.tool == "eraser":
             self.setCursor(Qt.BlankCursor)
@@ -503,9 +510,14 @@ class Canvas(QOpenGLWidget):
 
 
 class Toolbar(QFrame):
+
     def __init__(self, parent, canvas):
         super().__init__(parent)
+        self.win = parent
         self.canvas = canvas
+
+        self.setMouseTracking(True)
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
 
         self.setStyleSheet(
             """
@@ -624,6 +636,23 @@ class Toolbar(QFrame):
 
         # btn_close = add_btn("tools/close.svg", 40)
 
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton or event.button() == Qt.RightButton:
+            if self.canvas.board_color != (0, 0, 0, 0):
+                self.canvas.board_color = (0, 0, 0, 0)
+                self.canvas.drawing_mode = False
+                self.canvas.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+
+            else:
+                self.canvas.board_color = (0, 0, 0, 50)
+                self.canvas.drawing_mode = True
+                self.win.setAttribute(Qt.WA_TransparentForMouseEvents, False)
+
+            self.canvas.update()
+
+        elif event.button() == Qt.MiddleButton:
+            self.window().close()
+
     def update_color_btn(self):
         """更新顏色按鈕的顯示"""
         color_idx = self.canvas.settings[self.canvas.tool]["color"]
@@ -674,6 +703,7 @@ class Toolbar(QFrame):
 
 
 class Window(QWidget):
+
     def __init__(self):
         super().__init__()
 
@@ -712,6 +742,13 @@ class Window(QWidget):
         # self.toolbar.size_label.setStyleSheet("font-size: 20px; color: white;")
         # self.toolbar.size_label.setText(f"{new_size}px")
         # self.canvas.show_size_popup(self.mapFromGlobal(QCursor.pos()), new_size)
+
+    def mouse_through(self, enable):
+        if enable:
+            self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+            print("mouse through")
+        else:
+            self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
 
     def resizeEvent(self, event=None):
         self.canvas.setGeometry(self.rect())
