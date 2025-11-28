@@ -10,18 +10,8 @@ from PySide2.QtWidgets import (
     QShortcut,
     QMenu,
 )
-from PySide2.QtGui import QIcon
-
 from PySide2.QtGui import QKeySequence
 import math
-import os
-
-
-def get_icon(path: str):
-    """從 image/toolbar/ 讀取 SVG/PNG 圖示"""
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    full_path = os.path.join(base_path, "image", "toolbar", path)
-    return QIcon(full_path)
 
 
 def dist(a, b):
@@ -366,79 +356,84 @@ class Toolbar(QFrame):
     def __init__(self, parent, canvas, close_callback):
         super().__init__(parent)
         self.canvas = canvas
-        self.close_callback = close_callback
 
-        self.setFixedHeight(70)
+        self.setFixedHeight(60)
+        self.color_btn = QPushButton()  # 只是給程式用，不顯示也可以
+        self.size_label = QPushButton()  # 只是 placeholder，避免報錯
 
         self.setStyleSheet(
             """
             QFrame {
-                background-color: rgba(40,40,40,230);
+                background-color: rgba(34,34,34,220);
                 border-radius:10px;
             }
             QPushButton {
-                background-color: rgba(70,70,70,255);
-                border-radius: 6px;
+                color: white;
+                font-family: 'Segoe UI Emoji';
+                font-size: 22px;
+                border: none;
                 padding: 6px;
             }
             QPushButton:hover {
-                background-color: rgba(100,100,100,255);
-            }
-            QPushButton:pressed {
-                background-color: rgba(255,140,0,100);
+                background-color: rgba(255,255,255,40);
             }
         """
         )
 
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(12)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(8)
 
-        # -------------------------
-        # 工具按鈕建立器
-        # -------------------------
-        from PySide2.QtCore import QSize
-
-        def add_icon_button(path, scale=0.8):
-            btn = QPushButton()
-            btn.setIcon(get_icon(path))
-            btn.setFixedSize(52, 52)
-            btn.setIconSize(QSize(int(52 * scale), int(52 * scale)))
+        # -------------------------------------------------------
+        # 工具按鈕生成（固定寬度，靠 emoji，無文字）
+        # -------------------------------------------------------
+        def add_btn(emoji, w=40):
+            btn = QPushButton(emoji)
+            btn.setFixedSize(w, 40)
             layout.addWidget(btn)
             return btn
 
-        # -----------------------------
-        # 1. 黑板
-        # -----------------------------
-        btn_board = add_icon_button("board.svg", 0.8)
+        # -------------------------------------------------------
+        # 📘 黑板（無下拉）
+        # -------------------------------------------------------
+        btn_board = add_btn("📘", 40)
         btn_board.clicked.connect(parent.toggle_board)
 
-        # -----------------------------
-        # 2. 橡皮擦（有 menu）
-        # -----------------------------
-        btn_eraser = add_icon_button("tools/eraser.svg", 0.85)
+        # -------------------------------------------------------
+        # 🧽 橡皮擦 ▼
+        # -------------------------------------------------------
+        btn_eraser = add_btn("🧽", 60)
         eraser_menu = QMenu(self)
+
         eraser_menu.addAction(
             "圓形橡皮擦",
-            lambda: (canvas.set_tool("eraser"), setattr(canvas, "thickness", 30)),
+            lambda: (
+                canvas.set_tool("eraser"),
+                canvas.__setattr__("erase_type", "circle"),
+                canvas.__setattr__("pen_size", 30),
+            ),
         )
         eraser_menu.addAction(
             "矩形橡皮擦",
-            lambda: (canvas.set_tool("eraser"), setattr(canvas, "thickness", 20)),
+            lambda: (
+                canvas.set_tool("eraser"),
+                canvas.__setattr__("erase_type", "rect"),
+                canvas.__setattr__("thickness", 20),
+            ),
         )
         btn_eraser.setMenu(eraser_menu)
 
-        # -----------------------------
-        # 3. 筆刷（普通筆 / 螢光筆）
-        # -----------------------------
-        btn_brush = add_icon_button("tools/pen.svg", 0.85)
+        # -------------------------------------------------------
+        # ✏️ 筆刷 ▼
+        # -------------------------------------------------------
+        btn_brush = add_btn("✏️ ▼", 60)
         brush_menu = QMenu(self)
 
         brush_menu.addAction(
             "普通筆",
             lambda: (
                 canvas.set_tool("pen"),
-                setattr(canvas, "thickness", 4),
+                canvas.__setattr__("pen_size", 4),
                 canvas.set_color_tuple((255, 255, 255)),
             ),
         )
@@ -446,37 +441,41 @@ class Toolbar(QFrame):
             "螢光筆",
             lambda: (
                 canvas.set_tool("pen"),
-                setattr(canvas, "thickness", 20),
+                canvas.__setattr__("pen_size", 20),
                 canvas.set_color_tuple((255, 255, 0)),
             ),
         )
         btn_brush.setMenu(brush_menu)
 
-        # -----------------------------
-        # 4. 形狀（自由筆 / 直線 / 矩形）
-        # -----------------------------
-        btn_shape = add_icon_button("shapes.svg", 0.8)
+        # -------------------------------------------------------
+        # ⬛ 形狀 ▼
+        # -------------------------------------------------------
+        btn_shape = add_btn("⬛", 60)
         shape_menu = QMenu(self)
+
         shape_menu.addAction("自由筆", lambda: canvas.set_tool("pen"))
         shape_menu.addAction("直線", lambda: canvas.set_tool("line"))
         shape_menu.addAction("矩形", lambda: canvas.set_tool("rect"))
+
         btn_shape.setMenu(shape_menu)
 
-        # -----------------------------
-        # 5. 大小（2~30px）
-        # -----------------------------
-        btn_size = add_icon_button("size.svg", 0.8)
+        # -------------------------------------------------------
+        # 📏 大小 ▼
+        # -------------------------------------------------------
+        btn_size = add_btn("📏", 60)
         size_menu = QMenu(self)
+
         for s in [2, 4, 6, 8, 10, 15, 20, 30]:
             size_menu.addAction(
-                f"{s}px", lambda _, v=s: setattr(canvas, "thickness", v)
+                f"{s}px", lambda _, v=s: canvas.__setattr__("pen_size", v)
             )
+
         btn_size.setMenu(size_menu)
 
-        # -----------------------------
-        # 6. 顏色選擇
-        # -----------------------------
-        btn_color = add_icon_button("color.svg", 0.8)
+        # -------------------------------------------------------
+        # 🎨 顏色 ▼
+        # -------------------------------------------------------
+        btn_color = add_btn("🎨", 60)
         color_menu = QMenu(self)
 
         colors = {
@@ -492,24 +491,25 @@ class Toolbar(QFrame):
 
         for name, rgb in colors.items():
             color_menu.addAction(name, lambda _, c=rgb: canvas.set_color_tuple(c))
+
         btn_color.setMenu(color_menu)
 
-        # -----------------------------
-        # 7. Undo
-        # -----------------------------
-        btn_undo = add_icon_button("undo.svg", 0.9)
+        # -------------------------------------------------------
+        # ↩ Undo
+        # -------------------------------------------------------
+        btn_undo = add_btn("↩", 40)
         btn_undo.clicked.connect(canvas.undo)
 
-        # -----------------------------
-        # 8. Clear
-        # -----------------------------
-        btn_clear = add_icon_button("clear.svg", 0.85)
+        # -------------------------------------------------------
+        # 🧹 Clear
+        # -------------------------------------------------------
+        btn_clear = add_btn("🧹", 40)
         btn_clear.clicked.connect(canvas.clear)
 
-        # -----------------------------
-        # 9. Close
-        # -----------------------------
-        btn_close = add_icon_button("close.svg", 0.9)
+        # -------------------------------------------------------
+        # ❌ Close
+        # -------------------------------------------------------
+        btn_close = add_btn("❌", 40)
         btn_close.clicked.connect(close_callback)
 
 
