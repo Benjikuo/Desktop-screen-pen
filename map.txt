@@ -81,3 +81,23 @@ self.tool = "pen"                             pen / highlight / eraser / crop_er
 self.thickness = 4                            2 ~ 50
 self.shape = "free"                           free / line / rect
 self.pen_color = QColor(255, 255, 255, 255)   
+
+修理 pen.py：
+- drag down menu
+- topbar 滑鼠控制
+- size 顯示延遲
+- clear 可以  undo
+- save 背景功能
+- 截圖
+- crop eraser
+- 工具轉換 drag down menu
+- 快速鍵
+- 畫畫的時候 topbar 不見
+- 預設粗細設定
+- shift + C 或 S 是反向順序
+- 如果上一步是 clear ，再 clear 也沒有用
+- shift  加上工具鍵是沒有設定顏色與粗細格式的
+- 黑灰筆 T
+- 紅筆 G
+- 藍筆 B
+- 螢光筆重疊問題
