@@ -8,9 +8,9 @@ A tool that allows users to draw anywhere on the screen.
 <br>
 
 ## 🛠️ Why I Built This
-- Sometime I need to draw on screen, it can let me note something.
-- It is cool to have a black board on my desktop.
-- I can practice using pyside to do something.
+- I often need to jot down notes, highlight ideas, or illustrate concepts directly on my desktop.
+- Being able to turn my computer into a simple “blackboard” whenever I need it is super handy.
+- I’m also using this project as a chance to get better at building desktop apps with PySide2 / Qt.
 
 <br>
 
@@ -21,7 +21,14 @@ A tool that allows users to draw anywhere on the screen.
 
 ## 📂 Project Structure  
 ```
-Desktop card/
+Desktop pen/
+│── image/
+│   ├── toolbar/
+│   └── showcase/
+│── main.py
+│── window.py
+│── canva.py
+└── toolbar.py
 ```
 
 <br>
@@ -29,7 +36,7 @@ Desktop card/
 ## ⚙️ Requirements
 Install dependencies before running:
 ```bash
-pip install 
+pip install PySide2
 ```
 
 <br>
