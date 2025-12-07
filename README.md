@@ -62,13 +62,13 @@ python main.py
 ## 💻 Keyboard and Mouse Controls
 ### [Keyboard]
 **Mode Toggles:**
-| Key | Action | Description |
+| Key | Action | Mode |
 |-----|--------|-------------|
-| `1` | Toggle the **background**  | Cycle through **transparent / black** |
-| `2` | Toggle the **tool**        | Cycle through **pen / highlight / eraser / crop eraser** |
-| `3` | Toggle the **stroke size** | Cycle through **4px / 6px / 10px / 14px / 20px / 30px / 50px** |
-| `4` | Toggle the **shape**       | Cycle through **free pen / line / rectangle** |
-| `5` | Toggle the **color**       | Cycle through **⬜white / 🟥red / 🟧orange / 🟨yellow / 🟩green / 🟦blue / 🟪purple** |
+| `1` | Toggle the **background**  | transparent / black |
+| `2` | Toggle the **tool**        | pen / highlight / eraser / crop eraser |
+| `3` | Toggle the **stroke size** | 4px / 6px / 10px / 14px / 20px / 30px / 50px |
+| `4` | Toggle the **shape**       | free pen / line / rectangle** |
+| `5` | Toggle the **color**       | ⬜white / 🟥red / 🟧orange / 🟨yellow / 🟩green / 🟦blue / 🟪purple |
 
 *(**+Shift**: toggles in the opposite direction)*
 
