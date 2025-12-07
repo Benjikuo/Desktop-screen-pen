@@ -120,12 +120,11 @@ python main.py
 ---
 
 ### [Mouse]
-**Click:**
-| button \ item | Canva                 | Toolbar             | Button
-|---------------|----------------------|-----------------------------|
-| left          | draw          | X  |change drawing control |
-| middle        | close the program    | close the program | close the program |
-| right         | Spawn four of a kind | set initial white pen | X |
+| button \ item | Canva | Toolbar | Button |
+|---------------|-------|---------|--------|
+| left click   | Draw              | Set draw mode     | Change drawing control |
+| middle click | Close the program | Close the program | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- |
+| right click  | Set view mode     | Set white pen     | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- |
 
 <br>
 
