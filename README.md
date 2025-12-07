@@ -62,13 +62,13 @@ python main.py
 ## 💻 Keyboard and Mouse Controls
 ### [Keyboard]
 **Mode Toggles:**
-| Key | Action | Mode |
-|-----|--------|------|
-| `1` | Toggle the background  | transperent / black |
-| `2` | Toggle the tool        | pen / highlight / eraser / crop eraser |
-| `3` | Toggle the stroke size | 4px / 6px / 10px / 14px / 20px / 30px / 50px |
-| `4` | Toggle the shape       | free pen / line / rectangle |
-| `5` | Toggle the color       | white / red / orange / yellow / green / blue / purple |
+| Key | Action | Description |
+|-----|--------|-------------|
+| `1` | Toggle the **background**  | Cycle through **transparent / black** |
+| `2` | Toggle the **tool**        | Cycle through **pen / highlight / eraser / crop eraser** |
+| `3` | Toggle the **stroke size** | Cycle through **4px / 6px / 10px / 14px / 20px / 30px / 50px** |
+| `4` | Toggle the **shape**       | Cycle through **free pen / line / rectangle** |
+| `5` | Toggle the **color**       | Cycle through **⬜white / 🟥red / 🟧orange / 🟨yellow / 🟩green / 🟦blue / 🟪purple** |
 
 *(**+Shift**: toggles in the opposite direction)*
 
@@ -85,12 +85,12 @@ python main.py
 
 <br>
 
-**Quick Mode Switches**
+**✨ Quick Mode Toggles:**
 | Key | Action | Description |
 |-----|--------|-------------| 
-| `W` | Toggle drawing mode | Switch transparent / black / view mode |
-| `E` | Toggle eraser       | Press again to switch to crop-eraser |
-| `R` | Toggle pen          | Press again to switch to highlighter |
+| `W` | Toggle drawing mode | Cycle through **transparent / black / view mode** |
+| `E` | Toggle eraser       | Press again to switch to **crop-eraser** |
+| `R` | Toggle pen          | Press again to switch to **highlighter** |
 | `Z` | Toggle tool         | Same as key `2` |
 | `X` | Toggle shape        | Same as key `4` |
 | `C` | Toggle color        | Same as key `5` |
@@ -99,18 +99,23 @@ python main.py
  
 <br>
 
-**Quick Opperations**
-| `S` | Save board | Same as key `6` |
-| `D` | Undo       | Skips “clear” in history |
-| `F` | Redo       | Skips “clear” in history |
+**✨ Quick Actions:**
+| Key | Action | Description |
+|-----|--------|-------------|
+| `Ctrl + S` or `S` | Save board    | Same as key `6` |
+| `Ctrl + Z` or `D` | Undo          | Undo but skips “clear” in history |
+| `Ctrl + Y` or `F` | Redo          | Redo but skips “clear” in history |
+| `Ctrl + R`        | Close program | Same as key `0` |
 
 <br>
 
-**Tool Shortcuts**
-| `T` | Yellow pen |
-| `G` | Red pen |
-| `B` | Blue pen |
-| `V` | Red rectangle tool |
+**✏️ Tool Shortcuts:**
+| Key | Tool |
+|-----|------|
+| `T` | 🟡 Yellow pen |
+| `G` | 🔴 Red pen |
+| `B` | 🔵 Blue pen |
+| `V` | 🟥 Red rectangle pen |
 
 ---
 
