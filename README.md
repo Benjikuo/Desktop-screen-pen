@@ -67,7 +67,7 @@ python main.py
 | `1` | Toggle the **background**  | transparent / black |
 | `2` | Toggle the **tool**        | pen / highlight / eraser / crop eraser |
 | `3` | Toggle the **stroke size** | 4px / 6px / 10px / 14px / 20px / 30px / 50px |
-| `4` | Toggle the **shape**       | free pen / line / rectangle** |
+| `4` | Toggle the **shape**       | free pen / line / rectangle |
 | `5` | Toggle the **color**       | ⬜white / 🟥red / 🟧orange / 🟨yellow / 🟩green / 🟦blue / 🟪purple |
 
 *(**+Shift**: toggles in the opposite direction)*
