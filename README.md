@@ -32,8 +32,9 @@ Desktop pen/
 │   └── showcase/      # Demonstration gif
 │── main.py
 │── window.py
-│── canva.py
 │── toolbar.py
+│── controller.py
+│── canva.py
 ├── LICENSE            # MIT license
 └── README.md          # Project documentation
 ```
