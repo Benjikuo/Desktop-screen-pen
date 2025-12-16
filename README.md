@@ -65,7 +65,7 @@ python main.py
 **Mode Toggles:**
 | Key | Action | Mode |
 |-----|--------|-------------|
-| `1` | Toggle the **background**  | transparent / black |
+| `1` | Toggle the **board**  | transparent / black |
 | `2` | Toggle the **tool**        | pen / highlight / eraser / crop eraser |
 | `3` | Toggle the **stroke size** | 4px / 6px / 10px / 14px / 20px / 30px / 50px |
 | `4` | Toggle the **shape**       | free pen / line / rectangle |
@@ -124,7 +124,7 @@ python main.py
 ### [Mouse]
 | button \ item | Canva | Toolbar | Button |
 |---------------|-------|---------|--------|
-| left click   | Draw              | Set draw mode     | Change drawing control |
+| left click   | Draw              | Set drawing mode  | Change drawing control |
 | middle click | Close the program | Close the program | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- |
 | right click  | Set view mode     | Set white pen     | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- |
 
