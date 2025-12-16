@@ -103,10 +103,10 @@ python main.py
 **✨ Quick Actions:**
 | Key | Action | Description |
 |-----|--------|-------------|
-| `Ctrl + S` or `S` | Save board    | Same as key `6` |
-| `Ctrl + Z` or `D` | Undo          | Undo but skips “clear” in history |
-| `Ctrl + Y` or `F` | Redo          | Redo but skips “clear” in history |
-| `Ctrl + R`        | Close program | Same as key `0` |
+| `Ctrl + S` or `S`   | Save board    | Same as key `6` |
+| `Ctrl + Z` or `D`   | Undo          | Undo but skips “clear” in history |
+| `Ctrl + Y` or `F`   | Redo          | Redo but skips “clear” in history |
+| `Ctrl + R` or `Esc` | Close program | Same as key `0` |
 
 <br>
 
