@@ -82,7 +82,7 @@ python main.py
 | `7` | Undo  | Undo the last change |
 | `8` | Redo  | Redo the last change |
 | `9` | Clear | Clear all strokes |
-| `0` | Close | Close the program |
+| `0` | Quit  | Quit the program |
 
 <br>
 
@@ -103,10 +103,10 @@ python main.py
 **✨ Quick Actions:**
 | Key | Action | Description |
 |-----|--------|-------------|
-| `Ctrl + S` or `S`   | Save board    | Same as key `6` |
-| `Ctrl + Z` or `D`   | Undo          | Undo but skips “clear” in history |
-| `Ctrl + Y` or `F`   | Redo          | Redo but skips “clear” in history |
-| `Ctrl + R` or `Esc` | Close program | Same as key `0` |
+| `Ctrl + S` or `S`   | Save board   | Same as key `6` |
+| `Ctrl + Z` or `D`   | Undo         | Undo but skips “clear” in history |
+| `Ctrl + Y` or `F`   | Redo         | Redo but skips “clear” in history |
+| `Ctrl + R` or `Esc` | Quit program | Same as key `0` |
 
 <br>
 
