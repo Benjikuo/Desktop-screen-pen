@@ -103,18 +103,19 @@ python main.py
 **✨ Quick Actions:**
 | Key | Action | Description |
 |-----|--------|-------------|
-| `Ctrl + S` or `S`   | Save board   | Same as key `6` |
-| `Ctrl + Z` or `D`   | Undo         | Undo but skips “clear” in history |
-| `Ctrl + Y` or `F`   | Redo         | Redo but skips “clear” in history |
-| `Ctrl + R` or `Esc` | Quit program | Same as key `0` |
+| `Ctrl + S` or `S`         | Save board   | Same as key `6` |
+| `Ctrl + Z` or `D`         | Undo         | Undo but skips “clear” in history |
+| `Ctrl + Y` or `F`         | Redo         | Redo but skips “clear” in history |
+| `Ctrl + X` or `A`         | Clean board  | Same as key `9` |
+| `Ctrl + R` , `Q` or `Esc` | Quit program | Same as key `0` |
 
 <br>
 
 **✏️ Tool Shortcuts:**
 | Key | Tool |
 |-----|------|
-| `T` | 🟡 Yellow pen |
-| `G` | 🔴 Red pen |
+| `T` | ⚪ White pen |
+| `G` | 🟠 Orange pen |
 | `B` | 🔵 Blue pen |
 | `V` | 🟥 Red rectangle pen |
 
