@@ -1,3 +1,5 @@
+# main.py
+
 from PySide2.QtWidgets import QApplication
 from window import Window
 

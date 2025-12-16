@@ -1,365 +1,125 @@
+# canva.py
 # type: ignore
-from PySide2.QtCore import Qt, QRect, QPoint
+
 from PySide2.QtGui import QColor, QPainter, QPen
+from PySide2.QtCore import Qt, QPoint, QRect
 from PySide2.QtWidgets import QWidget
-import math
+import copy
 
-
-def dist(a, b):
-    return math.hypot(a.x() - b.x(), a.y() - b.y())
-
-
-def line_hit(p, a, b, r):
-    ax, ay = a.x(), a.y()
-    bx, by = b.x(), b.y()
-    px, py = p.x(), p.y()
-
-    abx, aby = bx - ax, by - ay
-    apx, apy = px - ax, py - ay
-    ab_len = abx * abx + aby * aby
-
-    if ab_len == 0:
-        return dist(p, a) <= r
-
-    t = max(0, min(1, (apx * abx + apy * aby) / ab_len))
-    cx = ax + t * abx
-    cy = ay + t * aby
-
-    return math.hypot(px - cx, py - cy) <= r
-
-
-def rect_hit(p, rect, r):
-    x = max(rect.left(), min(p.x(), rect.right()))
-    y = max(rect.top(), min(p.y(), rect.bottom()))
-    return math.hypot(p.x() - x, p.y() - y) <= r
-
-
-class BaseTool:
-    """
-    初步版本：只有屬性，不處理邏輯。
-    不會破壞原本 set_tool / set_size / set_color。
-    """
-
-    name = "base"
-    default_size = 4
-    default_color = "white"
-    shape = "free"
-
-    def __init__(self):
-        self.size = self.default_size
-        self.color = self.default_color  # 儲存字串
-        self.shape = self.shape
-
-    def get_qcolor(self):
-        if self.color is None:
-            return None
-        rgb = COLOR_TABLE.get(self.color, (255, 255, 255))
-        return QColor(*rgb)
-
-
-class PenTool(BaseTool):
-    name = "pen"
-    default_size = 4
-    default_color = "white"
-    shape = "free"
-
-
-class HighlightTool(BaseTool):
-    name = "highlight"
-    default_size = 12
-    default_color = "yellow"
-    shape = "free"
-
-
-class EraserTool(BaseTool):
-    name = "eraser"
-    default_size = 30
-    default_color = None
-    shape = "free"
-
-
-class CropEraserTool(BaseTool):
-    name = "crop_eraser"
-    default_size = 40
-    default_color = None
-    shape = "rect"
+from controller import BrushState
 
 
 class Canva(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, window):
+        super().__init__(window)
 
-        self.drawing_mode = True
-        self.board_color = (0, 0, 0, 50)
-        self.setCursor(Qt.CrossCursor)
-
-        self.tool = "pen"
-        self.tools = {
-            "pen": {"size": 4, "shape": "free", "color": "white"},
-            "highlight": {"size": 12, "shape": "free", "color": "yellow"},
-            "eraser": {"size": 30, "shape": "free", "color": None},
-            "crop_eraser": {"size": 40, "shape": "rect", "color": None},
-        }
-        self.tool_objects = {
-            "pen": PenTool(),
-            "highlight": HighlightTool(),
-            "eraser": EraserTool(),
-            "crop_eraser": CropEraserTool(),
-        }
-
-        self.shape = "free"
-        self.thickness = 4
-        self.color = "white"
-        self.pen_color = QColor(255, 255, 255)
-
-        self.start_pos = None
-        self.last_pos = None
-        self.current_stroke = []
-
-        self.strokes = []
-        self.history = []
-        self.history_index = -1
-
-        self.eraser_pos = None
         self.setMouseTracking(True)
 
-        self.size_popup_pos = None
-        self.size_popup_value = None
-        self.size_popup_timer = 0
+        self.board_color = (0, 0, 0, 50)
 
+        self.current_brush: BrushState | None = None
+        self.start_pos: QPoint | None = None
+        self.last_pos: QPoint | None = None
+        self.current_points: list[QPoint] = []
+
+        self.strokes: list[dict] = []
+
+        self.history = []
+        self.history_index = -1
         self.add_history_snapshot()
 
-    def snapshot(self):
-        """建立當前畫面的完整快照。"""
-        return {
-            "strokes": [
-                {
-                    "type": s["type"],
-                    "points": s.get("points", []),
-                    "start": s.get("start"),
-                    "end": s.get("end"),
-                    "rect": s.get("rect"),
-                    "color": s["color"],
-                    "width": s["width"],
-                }
-                for s in self.strokes
-            ],
-            "tool": self.tool,
-            "tool_state": {t: self.tools[t].copy() for t in self.tools},
-        }
-
-    def restore(self, snap):
-        """載入快照內容。"""
-        self.strokes = [
-            {
-                "type": s["type"],
-                "points": s.get("points", []),
-                "start": s.get("start"),
-                "end": s.get("end"),
-                "rect": s.get("rect"),
-                "color": s["color"],
-                "width": s["width"],
-            }
-            for s in snap["strokes"]
-        ]
-
-        self.tool = snap["tool"]
-        self.tools = {t: snap["tool_state"][t].copy() for t in snap["tool_state"]}
-
-        cfg = self.tools[self.tool]
-        self.shape = cfg["shape"]
-        self.thickness = cfg["size"]
-        if cfg["color"]:
-            r, g, b, a = cfg["color"]
-            self.pen_color = QColor(r, g, b, a)
-
-        self.update()
-
-    def add_history_snapshot(self):
-        """加入新的歷史紀錄。"""
-        snap = self.snapshot()
-        self.history = self.history[: self.history_index + 1]
-        self.history.append(snap)
-        self.history_index += 1
-
-    # ============================================================
-    #   Mouse Events
-    # ============================================================
-
     def mousePressEvent(self, event):
-        if event.button() == Qt.RightButton:
-            self.drawing_mode = not self.drawing_mode
-
-            if not self.drawing_mode:
-                self.setCursor(Qt.ArrowCursor)
-                self.board_color = (0, 0, 0, 0)
-            else:
-                self.setCursor(Qt.CrossCursor)
-                self.board_color = (0, 0, 0, 50)
-
-            self.update()
+        if event.button() != Qt.LeftButton:
             return
 
-        if not self.drawing_mode:
-            return
-
-        pos = event.pos()
-
-        if event.button() == Qt.LeftButton:
-            if self.tool == "eraser":
-                self.erase_at(pos)
-                return
-
-            self.start_pos = pos
-            self.last_pos = pos
-            self.current_stroke = [pos]
-
-        if event.button() == Qt.MiddleButton:
-            self.window().close()
+        brush = self.window().controller.get_brush()
+        self.begin_stroke(event.pos(), brush)
 
     def mouseMoveEvent(self, event):
-        pos = event.pos()
-        self.eraser_pos = pos
-
-        if not self.drawing_mode:
-            self.update()
+        if not self.current_brush:
             return
 
-        if self.tool == "eraser":
-            if event.buttons() & Qt.LeftButton:
-                self.erase_at(pos)
-            self.update()
+        self.move_stroke(event.pos())
+
+    def mouseReleaseEvent(self, event):
+        if event.button() != Qt.LeftButton:
             return
 
-        if not (event.buttons() & Qt.LeftButton):
-            self.update()
+        self.end_stroke()
+
+    def begin_stroke(self, pos: QPoint, brush: BrushState):
+        self.current_brush = brush
+        self.start_pos = pos
+        self.last_pos = pos
+        self.current_points = [pos]
+
+        if brush.tool == "eraser":
+            self.erase_at(pos)
+
+        self.toolbar.hide()
+        self.update()
+
+    def move_stroke(self, pos: QPoint):
+        b = self.current_brush
+        if not b:
             return
 
-        if self.shape == "free":
-            self.current_stroke.append(pos)
+        if b.tool == "eraser":
+            self.erase_at(pos)
+            return
+
+        if b.shape == "free":
+            self.current_points.append(pos)
         else:
             self.last_pos = pos
 
         self.update()
 
-    def mouseReleaseEvent(self, event):
-        if not self.drawing_mode or event.button() != Qt.LeftButton:
+    def end_stroke(self):
+        b = self.current_brush
+        if not b:
             return
 
-        if self.tool == "eraser":
-            return
+        if b.tool != "eraser":
+            stroke = {
+                "type": b.shape,
+                "color": b.color,
+                "width": b.size,
+                "round_cap": b.round_cap,
+            }
 
-        # finalize stroke
-        if self.shape == "free" and len(self.current_stroke) > 1:
-            self.strokes.append(
-                {
-                    "type": "pen",
-                    "points": self.current_stroke[:],
-                    "color": self.pen_color,
-                    "width": self.thickness,
-                }
-            )
+            if b.shape == "free":
+                stroke["points"] = self.current_points[:]
 
-        elif self.shape == "line":
-            self.strokes.append(
-                {
-                    "type": "line",
-                    "start": self.start_pos,
-                    "end": self.last_pos,
-                    "color": self.pen_color,
-                    "width": self.thickness,
-                }
-            )
+            elif b.shape == "line":
+                stroke["start"] = self.start_pos
+                stroke["end"] = self.last_pos
 
-        elif self.shape == "rect":
-            rect = QRect(self.start_pos, self.last_pos).normalized()
-            self.strokes.append(
-                {
-                    "type": "rect",
-                    "rect": rect,
-                    "color": self.pen_color,
-                    "width": self.thickness,
-                }
-            )
+            elif b.shape == "rect":
+                stroke["rect"] = QRect(self.start_pos, self.last_pos).normalized()
 
-        self.current_stroke = []
-        self.start_pos = None
-        self.last_pos = None
+            self.strokes.append(stroke)
+            self.add_history_snapshot()
 
-        self.add_history_snapshot()
+        self.current_brush = None
+        self.current_points = []
+
+        self.toolbar.show()
         self.update()
 
     def paintEvent(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
 
-        # 背景
         self.draw_background(p)
 
-        # 歷史筆畫
-        for item in self.strokes:
-            self.draw_item(p, item)
+        for s in self.strokes:
+            self.draw_stroke(p, s)
 
-        # 預覽
-        if self.drawing_mode and self.start_pos:
-            preview = None
+        if self.current_brush:
+            self.draw_preview(p)
 
-            if self.shape == "free" and len(self.current_stroke):
-                preview = {
-                    "type": "pen",
-                    "points": self.current_stroke,
-                    "color": self.pen_color,
-                    "width": self.thickness,
-                }
-
-            elif self.shape == "line":
-                preview = {
-                    "type": "line",
-                    "start": self.start_pos,
-                    "end": self.last_pos,
-                    "color": self.pen_color,
-                    "width": self.thickness,
-                }
-
-            elif self.shape == "rect":
-                rect = QRect(self.start_pos, self.last_pos).normalized()
-                preview = {
-                    "type": "rect",
-                    "rect": rect,
-                    "color": self.pen_color,
-                    "width": self.thickness,
-                }
-
-            if preview:
-                self.draw_item(p, preview)
-
-        # 橡皮擦圈
-        if self.tool == "eraser" and self.eraser_pos:
-            pen = QPen(QColor(255, 120, 0))
-            pen.setWidth(2)
-            p.setPen(pen)
-            p.setBrush(Qt.NoBrush)
-            r = self.thickness / 2
-            p.drawEllipse(self.eraser_pos, r, r)
-
-        # popup
-        if self.size_popup_value is not None:
-            pen = QPen(QColor(255, 200, 80))
-            pen.setWidth(2)
-            p.setPen(pen)
-            r = self.size_popup_value / 2
-            p.drawEllipse(self.size_popup_pos, r, r)
-            p.drawText(
-                self.size_popup_pos + QPoint(20, -20), f"{self.size_popup_value}px"
-            )
-
-            self.size_popup_timer -= 1
-            if self.size_popup_timer <= 0:
-                self.size_popup_value = None
-                self.size_popup_pos = None
-
-        # 邊框
-        if self.drawing_mode:
+        if self.board_color != (0, 0, 0, 0):
             pen = QPen(QColor(255, 120, 0))
             pen.setWidth(2)
             p.setPen(pen)
@@ -369,82 +129,74 @@ class Canva(QWidget):
         r, g, b, a = self.board_color
         painter.fillRect(self.rect(), QColor(r, g, b, a))
 
-    def draw_item(self, painter, item):
-        pen = QPen(item["color"])
-        pen.setWidth(item["width"])
-        pen.setCapStyle(Qt.RoundCap)
+    def _apply_cap_style(self, pen: QPen, round_cap: bool):
+        pen.setCapStyle(Qt.RoundCap if round_cap else Qt.FlatCap)
+
+    def draw_stroke(self, painter, s):
+        pen = QPen(s["color"])
+        pen.setWidth(s["width"])
+        self._apply_cap_style(pen, bool(s.get("round_cap", False)))
         painter.setPen(pen)
 
-        t = item["type"]
-
-        if t == "pen":
-            pts = item["points"]
+        if s["type"] == "free":
+            pts = s["points"]
             for i in range(1, len(pts)):
                 painter.drawLine(pts[i - 1], pts[i])
 
-        elif t == "line":
-            painter.drawLine(item["start"], item["end"])
+        elif s["type"] == "line":
+            painter.drawLine(s["start"], s["end"])
 
-        elif t == "rect":
-            painter.drawRect(item["rect"])
+        elif s["type"] == "rect":
+            painter.drawRect(s["rect"])
 
-    def show_size_popup(self, pos, value):
-        self.size_popup_pos = pos
-        self.size_popup_value = value
-        self.size_popup_timer = 10
+    def draw_preview(self, painter):
+        b = self.current_brush
+        if not b or b.tool == "eraser":
+            return
+
+        pen = QPen(b.color)
+        pen.setWidth(b.size)
+        self._apply_cap_style(pen, b.round_cap)
+        painter.setPen(pen)
+
+        if b.shape == "free" and len(self.current_points) > 1:
+            for i in range(1, len(self.current_points)):
+                painter.drawLine(self.current_points[i - 1], self.current_points[i])
+
+        elif b.shape == "line":
+            painter.drawLine(self.start_pos, self.last_pos)
+
+        elif b.shape == "rect":
+            rect = QRect(self.start_pos, self.last_pos).normalized()
+            painter.drawRect(rect)
+
+    def erase_at(self, pos):
+        r = self.current_brush.size / 2
+        self.strokes = [s for s in self.strokes if not self.stroke_hit(s, pos, r)]
         self.update()
 
-    def last_tool(self):
-        pass
+    def stroke_hit(self, s, pos, r):
+        if s["type"] == "free":
+            return any((p - pos).manhattanLength() < r for p in s["points"])
+        if s["type"] == "line":
+            return False
+        if s["type"] == "rect":
+            return s["rect"].contains(pos)
+        return False
 
-    def set_tool(self, tool):
-        self.tool = tool
-        cfg = self.tools[tool]
+    def snapshot(self):
 
-        self.shape = cfg["shape"]
+        return copy.deepcopy(self.strokes)
 
-        self.thickness = cfg["size"]
-
-        if cfg["color"] is None:
-            self.setCursor(Qt.BlankCursor)
-        else:
-            r, g, b, a = cfg["color"]
-            self.pen_color = QColor(r, g, b, a)
-            self.setCursor(Qt.CrossCursor)
-
+    def restore(self, snap):
+        self.strokes = snap
         self.update()
 
-    def set_size(self, size):
-        self.thickness = size
-        self.tools[self.tool]["size"] = size
-
-    def set_shape(self, shape):
-        self.shape = shape
-        self.tools[self.tool]["shape"] = shape
-
-    def set_color(self, color):
-        self.color = color
-        if color == "white":
-            rgb = (255, 255, 255)
-        elif color == "red":
-            rgb = (248, 49, 47)
-        elif color == "orange":
-            rgb = (255, 103, 35)
-        elif color == "yellow":
-            rgb = (255, 176, 46)
-        elif color == "green":
-            rgb = (0, 210, 106)
-        elif color == "blue":
-            rgb = (0, 166, 237)
-        elif color == "purple":
-            rgb = (199, 144, 241)
-        else:
-            print("Error: Invalid color")
-
-        r, g, b = rgb
-        self.pen_color = QColor(r, g, b)
-        self.tools[self.tool]["color"] = (r, g, b, 255)
-        self.update()
+    def add_history_snapshot(self):
+        snap = self.snapshot()
+        self.history = self.history[: self.history_index + 1]
+        self.history.append(snap)
+        self.history_index += 1
 
     def undo(self):
         if self.history_index > 0:
@@ -457,6 +209,8 @@ class Canva(QWidget):
             self.restore(self.history[self.history_index])
 
     def clear(self):
-        self.strokes = []
-        self.update()
+        self.strokes.clear()
+        self.history.clear()
+        self.history_index = -1
         self.add_history_snapshot()
+        self.update()

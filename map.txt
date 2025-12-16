@@ -1,9 +1,6 @@
 功能：
 - 不用質感貼圖，每一次編輯畫 png
-- 記憶上次畫畫
 - 筆刷顯示
-- GPU
-- drag down / icon + English
 
 先來解決：
 - 不要 self.highlight_mode = False
@@ -11,8 +8,8 @@
 - toolbar 圖案改 svg
 
 工具列設定：
-黑板、筆刷 / 橡皮、大小、形狀、顏色、返回、重做、清除、關閉
-1     2           3     4    5     6    7    8       9
+黑板、筆刷 / 橡皮、大小、形狀、儲存、顏色、返回、重做、清除、關閉
+1     2           3     4    5     6    7    8     9     10
 board tool size type color undo redo clear close
 
 
@@ -29,7 +26,7 @@ board tool size type color undo redo clear close
 2~50，每次改2，滾輪控制
 
 顏色控制：
-白、紅、橙、黃、綠、藍、紫、灰
+白、紅、橙、黃、綠、藍、紫
 
 樣皮擦▼ 
 - 畫筆橡皮擦 
@@ -45,11 +42,14 @@ board tool size type color undo redo clear close
 - 矩形 
 
 大小▼ 
-- 2px 
 - 4px 
 - 6px 
-- 8px 
 - 10px 
+- 14px 
+- 20px 
+- 30px 
+- 50px 
+
 
 顏色 ▼ 
 - ⬜ 白 
@@ -59,7 +59,6 @@ board tool size type color undo redo clear close
 - 🟩 綠 
 - 🟦 藍 
 - 🟪 紫 
-- ⬜ 灰
 
 Keyboard shortcut
 ctrl + z: undo
@@ -83,21 +82,9 @@ self.shape = "free"                           free / line / rect
 self.pen_color = QColor(255, 255, 255, 255)   
 
 修理 pen.py：
-- drag down menu
 - topbar 滑鼠控制
-- size 顯示延遲
-- clear 可以  undo
-- save 背景功能
-- 截圖
 - crop eraser
-- 工具轉換 drag down menu
+- 工具轉換圖片
 - 快速鍵
 - 畫畫的時候 topbar 不見
-- 預設粗細設定
-- shift + C 或 S 是反向順序
 - 如果上一步是 clear ，再 clear 也沒有用
-- shift  加上工具鍵是沒有設定顏色與粗細格式的
-- 黑灰筆 T
-- 紅筆 G
-- 藍筆 B
-- 螢光筆重疊問題
