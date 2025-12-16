@@ -32,8 +32,9 @@ Desktop pen/
 │   └── showcase/      # Demonstration gif
 │── main.py
 │── window.py
-│── canva.py
 │── toolbar.py
+│── controller.py
+│── canva.py
 ├── LICENSE            # MIT license
 └── README.md          # Project documentation
 ```
@@ -64,10 +65,10 @@ python main.py
 **Mode Toggles:**
 | Key | Action | Mode |
 |-----|--------|-------------|
-| `1` | Toggle the **background**  | transparent / black |
+| `1` | Toggle the **board**  | transparent / black |
 | `2` | Toggle the **tool**        | pen / highlight / eraser / crop eraser |
 | `3` | Toggle the **stroke size** | 4px / 6px / 10px / 14px / 20px / 30px / 50px |
-| `4` | Toggle the **shape**       | free pen / line / rectangle** |
+| `4` | Toggle the **shape**       | free pen / line / rectangle |
 | `5` | Toggle the **color**       | ⬜white / 🟥red / 🟧orange / 🟨yellow / 🟩green / 🟦blue / 🟪purple |
 
 *(**+Shift**: toggles in the opposite direction)*
@@ -81,7 +82,7 @@ python main.py
 | `7` | Undo  | Undo the last change |
 | `8` | Redo  | Redo the last change |
 | `9` | Clear | Clear all strokes |
-| `0` | Close | Close the program |
+| `0` | Quit  | Quit the program |
 
 <br>
 
@@ -102,18 +103,19 @@ python main.py
 **✨ Quick Actions:**
 | Key | Action | Description |
 |-----|--------|-------------|
-| `Ctrl + S` or `S` | Save board    | Same as key `6` |
-| `Ctrl + Z` or `D` | Undo          | Undo but skips “clear” in history |
-| `Ctrl + Y` or `F` | Redo          | Redo but skips “clear” in history |
-| `Ctrl + R`        | Close program | Same as key `0` |
+| `Ctrl + S` or `S`         | Save board   | Same as key `6` |
+| `Ctrl + Z` or `D`         | Undo         | Undo but skips “clear” in history |
+| `Ctrl + Y` or `F`         | Redo         | Redo but skips “clear” in history |
+| `Ctrl + X` or `A`         | Clean board  | Same as key `9` |
+| `Ctrl + R` , `Q` or `Esc` | Quit program | Same as key `0` |
 
 <br>
 
 **✏️ Tool Shortcuts:**
 | Key | Tool |
 |-----|------|
-| `T` | 🟡 Yellow pen |
-| `G` | 🔴 Red pen |
+| `T` | ⚪ White pen |
+| `G` | 🟠 Orange pen |
 | `B` | 🔵 Blue pen |
 | `V` | 🟥 Red rectangle pen |
 
@@ -122,7 +124,7 @@ python main.py
 ### [Mouse]
 | button \ item | Canva | Toolbar | Button |
 |---------------|-------|---------|--------|
-| left click   | Draw              | Set draw mode     | Change drawing control |
+| left click   | Draw              | Set drawing mode  | Change drawing control |
 | middle click | Close the program | Close the program | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- |
 | right click  | Set view mode     | Set white pen     | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- |
 
