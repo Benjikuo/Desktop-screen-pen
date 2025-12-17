@@ -247,4 +247,4 @@ class Toolbar(QFrame):
             self.controller.quit()
 
         elif event.button() == Qt.RightButton:
-            self.controller.set_pen()
+            self.controller.set_mode("view")

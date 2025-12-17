@@ -32,45 +32,60 @@ class Window(QWidget):
         def shortcut(key, func):
             QShortcut(QKeySequence(key), self, activated=func)
 
+        # Mode Toggles:
         shortcut("1", lambda: self.controller.toggle_board())
         shortcut("2", lambda: self.controller.toggle_tool())
         shortcut("3", lambda: self.controller.toggle_size())
         shortcut("4", lambda: self.controller.toggle_shape())
         shortcut("5", lambda: self.controller.toggle_color())
 
+        shortcut("Z", lambda: self.controller.toggle_tool())
+        shortcut("X", lambda: self.controller.toggle_shape())
+        shortcut("C", lambda: self.controller.toggle_color())
+
+        # Direct Actions:
         shortcut("6", lambda: self.controller.save())
         shortcut("7", lambda: self.controller.undo())
         shortcut("8", lambda: self.controller.redo())
         shortcut("9", lambda: self.controller.clear())
         shortcut("0", lambda: self.controller.quit())
 
-        shortcut("W", lambda: self.controller.toggle_drawing_mode())
-        shortcut("E", lambda: self.controller.toggle_eraser())
-        shortcut("R", lambda: self.controller.toggle_pen())
-        shortcut("Z", lambda: self.controller.toggle_tool())
-        shortcut("X", lambda: self.controller.toggle_shape())
-        shortcut("C", lambda: self.controller.toggle_color())
-
         shortcut("S", lambda: self.controller.save())
         shortcut("D", lambda: self.controller.undo())
         shortcut("F", lambda: self.controller.redo())
         shortcut("A", lambda: self.controller.clear())
         shortcut("Q", lambda: self.controller.quit())
-        shortcut("Esc", lambda: self.controller.quit())
+
         shortcut("Ctrl+S", lambda: self.controller.save())
         shortcut("Ctrl+Z", lambda: self.controller.undo())
         shortcut("Ctrl+Y", lambda: self.controller.redo())
         shortcut("Ctrl+X", lambda: self.controller.clear())
         shortcut("Ctrl+R", lambda: self.controller.quit())
 
-        shortcut("T", lambda: self.controller.set_pen(color="white"))
-        shortcut("G", lambda: self.controller.set_pen(color="orange"))
+        shortcut("Esc", lambda: self.controller.quit())
+
+        # Quick Mode Toggles:
+        shortcut("W", lambda: self.controller.toggle_drawing_mode())
+        shortcut("E", lambda: self.controller.toggle_eraser())
+        shortcut("R", lambda: self.controller.toggle_pen())
+
+        # Tool Shortcuts:
+        shortcut("Space", lambda: self.controller.set_pen(color="white"))
+        shortcut("T", lambda: self.controller.set_pen(color="red"))
+        shortcut("Y", lambda: self.controller.set_pen(color="orange"))
+        shortcut("G", lambda: self.controller.set_pen(color="yellow"))
+        shortcut("H", lambda: self.controller.set_pen(color="green"))
         shortcut("B", lambda: self.controller.set_pen(color="blue"))
+        shortcut("N", lambda: self.controller.set_pen(color="purple"))
         shortcut(
             "V", lambda: self.controller.set_pen(size=2, shape="rect", color="red")
         )
 
+        # Reverse Toggles:
         shortcut("Shift+W", lambda: self.controller.toggle_drawing_mode(reverse=True))
+        shortcut("Shift+E", lambda: self.controller.toggle_eraser())
+        shortcut("Shift+R", lambda: self.controller.toggle_pen())
+
         shortcut("Shift+2", lambda: self.controller.toggle_tool(reverse=True))
         shortcut("Shift+3", lambda: self.controller.toggle_size(reverse=True))
         shortcut("Shift+4", lambda: self.controller.toggle_shape(reverse=True))
