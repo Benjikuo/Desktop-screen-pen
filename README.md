@@ -44,7 +44,7 @@ Desktop pen/
 ## ⚙️ Requirements
 Install dependencies before running:
 ```bash
-pip install PySide2
+pip install PySide2 mss
 ```
 
 <br>
