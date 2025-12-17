@@ -89,12 +89,12 @@ python main.py
 **✨ Quick Mode Toggles:**
 | Key | Action | Description |
 |-----|--------|-------------| 
-| `W` | Toggle drawing mode | Cycle through **transparent / black / view mode** |
-| `E` | Toggle eraser       | Press again to switch to **crop-eraser** |
-| `R` | Toggle pen          | Press again to switch to **highlighter** |
-| `Z` | Toggle tool         | Same as key `2` |
-| `X` | Toggle shape        | Same as key `4` |
-| `C` | Toggle color        | Same as key `5` |
+| `W` | Toggle mode   | Cycle through **transparent / black / view mode** |
+| `E` | Toggle eraser | Press again to switch to **crop-eraser** |
+| `R` | Toggle pen    | Press again to switch to **highlighter** |
+| `Z` | Toggle tool   | Same as key `2` |
+| `X` | Toggle shape  | Same as key `4` |
+| `C` | Toggle color  | Same as key `5` |
 
 *(**+Shift**: toggles in the opposite direction)*
  
