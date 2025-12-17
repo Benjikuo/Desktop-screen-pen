@@ -107,7 +107,7 @@ python main.py
 | `H`     | 🟢 Green pen |
 | `B`     | 🔵 Blue pen |
 | `N`     | 🟣 Purple pen |
-| `V`     | 🟥 Red rectangle pen |
+| `V`     | 🟥 Red square outline tool |
 
 ---
 
