@@ -78,11 +78,11 @@ python main.py
 **Direct Actions:**
 | Key | Action | Description |
 |-----|--------|-------------|
-| `6` , `Ctrl + S` or `S`         | Save  | Save with current background |
-| `7` , `Ctrl + Z` or `D`         | Undo  | Undo the last change |
-| `8` , `Ctrl + Y` or `F`         | Redo  | Redo the last change |
-| `9` , `Ctrl + X` or `A`         | Clear | Clear all strokes |
-| `0` , `Ctrl + R` , `Q` or `Esc` | Quit  | Quit the program |
+| `6` , `S` or `Ctrl + S`         | Save  | Save with current background |
+| `7` , `D` or `Ctrl + Z`         | Undo  | Undo the last change |
+| `8` , `F` or `Ctrl + Y`         | Redo  | Redo the last change |
+| `9` , `A` or `Ctrl + X`         | Clear | Clear all strokes |
+| `0` , `Q` , `Ctrl + R` or `Esc` | Quit  | Quit the program |
 
 <br>
 
