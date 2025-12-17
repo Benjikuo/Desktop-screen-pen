@@ -110,9 +110,9 @@ python main.py
 ### [Mouse]
 | button \ item | Canva | Toolbar | Button |
 |---------------|-------|---------|--------|
-| left click   | Draw              | Set **drawing** mode | Select drawing tool |
-| middle click | Close the program | Close the program    | Close the program   |
-| right click  | Set **view** mode | Set **view** mode    | Set **view** mode   |
+| left click   | Draw              | Set **drawing** mode | Select the tools  |
+| middle click | Close the program | Close the program    | Close the program |
+| right click  | Set **view** mode | Set **view** mode    | Set **view** mode |
 
 <br>
 
