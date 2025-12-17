@@ -65,11 +65,11 @@ python main.py
 **Mode Toggles:**
 | Key | Action | Mode |
 |-----|--------|-------------|
-| `1` | Toggle the **board**  | transparent / black |
-| `2` | Toggle the **tool**        | pen / highlight / eraser / crop eraser |
-| `3` | Toggle the **stroke size** | 4px / 6px / 10px / 14px / 20px / 30px / 50px |
-| `4` | Toggle the **shape**       | free pen / line / rectangle |
-| `5` | Toggle the **color**       | ⬜white / 🟥red / 🟧orange / 🟨yellow / 🟩green / 🟦blue / 🟪purple |
+| `1`       | Toggle the **board**       | transparent / black |
+| `2` , `Z` | Toggle the **tool**        | pen / highlight / eraser / crop eraser |
+| `3`       | Toggle the **stroke size** | 4px / 6px / 10px / 14px / 20px / 30px / 50px |
+| `4` , `X` | Toggle the **shape**       | free pen / line / rectangle |
+| `5` , `C` | Toggle the **color**       | ⬜white / 🟥red / 🟧orange / 🟨yellow / 🟩green / 🟦blue / 🟪purple |
 
 *(**+Shift**: toggles in the opposite direction)*
 
@@ -78,11 +78,11 @@ python main.py
 **Direct Actions:**
 | Key | Action | Description |
 |-----|--------|-------------|
-| `6` | Save  | Save with current background |
-| `7` | Undo  | Undo the last change |
-| `8` | Redo  | Redo the last change |
-| `9` | Clear | Clear all strokes |
-| `0` | Quit  | Quit the program |
+| `6` , `S` or `Ctrl + S`         | Save  | Save with current background |
+| `7` , `D` or `Ctrl + Z`         | Undo  | Undo the last change |
+| `8` , `F` or `Ctrl + Y`         | Redo  | Redo the last change |
+| `9` , `A` or `Ctrl + X`         | Clear | Clear all strokes |
+| `0` , `Q` , `Ctrl + R` or `Esc` | Quit  | Quit the program |
 
 <br>
 
@@ -92,41 +92,33 @@ python main.py
 | `W` | Toggle mode   | Cycle through **transparent / black / view mode** |
 | `E` | Toggle eraser | Press again to switch to **crop-eraser** |
 | `R` | Toggle pen    | Press again to switch to **highlighter** |
-| `Z` | Toggle tool   | Same as key `2` |
-| `X` | Toggle shape  | Same as key `4` |
-| `C` | Toggle color  | Same as key `5` |
 
 *(**+Shift**: toggles in the opposite direction)*
- 
-<br>
-
-**✨ Quick Actions:**
-| Key | Action | Description |
-|-----|--------|-------------|
-| `Ctrl + S` or `S`         | Save board   | Same as key `6` |
-| `Ctrl + Z` or `D`         | Undo         | Undo but skips “clear” in history |
-| `Ctrl + Y` or `F`         | Redo         | Redo but skips “clear” in history |
-| `Ctrl + X` or `A`         | Clean board  | Same as key `9` |
-| `Ctrl + R` , `Q` or `Esc` | Quit program | Same as key `0` |
 
 <br>
 
 **✏️ Tool Shortcuts:**
 | Key | Tool |
 |-----|------|
-| `T` | ⚪ White pen |
-| `G` | 🟠 Orange pen |
-| `B` | 🔵 Blue pen |
-| `V` | 🟥 Red rectangle pen |
+| `Space` | ⚪ White pen |
+| `T`     | 🔴 Red pen |
+| `Y`     | 🟠 Orange pen |
+| `G`     | 🟡 Yellow pen |
+| `H`     | 🟢 Green pen |
+| `B`     | 🔵 Blue pen |
+| `N`     | 🟣 Purple pen |
+| `V`     | 🟥 Red square outline tool |
 
 ---
 
 ### [Mouse]
 | button \ item | Canva | Toolbar | Button |
 |---------------|-------|---------|--------|
-| left click   | Draw              | Set drawing mode  | Change drawing control |
-| middle click | Close the program | Close the program | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- |
-| right click  | Set view mode     | Set white pen     | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- |
+| left click   | Draw              | Set **drawing** mode | Select the tools  |
+| middle click | Close the program | Close the program    | Close the program |
+| right click  | Set **view** mode | Set **view** mode    | Set **view** mode |
+
+The **mouse wheel** up and down can control the **brush size**.
 
 <br>
 
