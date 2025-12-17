@@ -118,6 +118,8 @@ python main.py
 | middle click | Close the program | Close the program    | Close the program |
 | right click  | Set **view** mode | Set **view** mode    | Set **view** mode |
 
+*The **mouse wheel** up and down can control the brush size.*
+
 <br>
 
 ## 📜 License
