@@ -100,10 +100,14 @@ python main.py
 **✏️ Tool Shortcuts:**
 | Key | Tool |
 |-----|------|
-| `T` | ⚪ White pen |
-| `G` | 🟠 Orange pen |
-| `B` | 🔵 Blue pen |
-| `V` | 🟥 Red rectangle pen |
+| `Space` | ⚪ White pen |
+| `T`     | 🔴 Red pen |
+| `Y`     | 🟠 Orange pen |
+| `G`     | 🟡 Yellow pen |
+| `H`     | 🟢 Green pen |
+| `B`     | 🔵 Blue pen |
+| `N`     | 🟣 Purple pen |
+| `V`     | 🟥 Red rectangle pen |
 
 ---
 
