@@ -111,8 +111,8 @@ python main.py
 | button \ item | Canva | Toolbar | Button |
 |---------------|-------|---------|--------|
 | left click   | Draw              | Set drawing mode  | Change drawing control |
-| middle click | Close the program | Close the program | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- |
-| right click  | Set view mode     | Set drawing mode  | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-- |
+| middle click | Close the program | Close the program | Close the program      |
+| right click  | Set view mode     | Set view mode     | Set view mode          |
 
 <br>
 
