@@ -241,4 +241,10 @@ class Toolbar(QFrame):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            self.controller.set_drawing_mode()
+            self.controller.set_mode("drawing")
+
+        elif event.button() == Qt.MiddleButton:
+            self.controller.quit()
+
+        elif event.button() == Qt.RightButton:
+            self.controller.set_pen()

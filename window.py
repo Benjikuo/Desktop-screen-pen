@@ -23,6 +23,7 @@ class Window(QWidget):
 
         self.controller.toolbar = self.toolbar
         self.canva.toolbar = self.toolbar
+        self.canva.controller = self.controller
 
         self.toolbar.raise_()
         self.showFullScreen()
@@ -53,7 +54,7 @@ class Window(QWidget):
         shortcut("S", lambda: self.controller.save())
         shortcut("D", lambda: self.controller.undo())
         shortcut("F", lambda: self.controller.redo())
-        shortcut("F", lambda: self.controller.clear())
+        shortcut("A", lambda: self.controller.clear())
         shortcut("Q", lambda: self.controller.quit())
         shortcut("Esc", lambda: self.controller.quit())
         shortcut("Ctrl+S", lambda: self.controller.save())

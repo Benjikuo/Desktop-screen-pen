@@ -43,7 +43,7 @@ tool_states = {
     ),
     "highlight": BrushState(
         tool="highlight",
-        shape="free",
+        shape="line",
         size=14,
         color=QColor(255, 176, 46, 80),
         color_name="yellow",
@@ -107,9 +107,7 @@ class Controller:
         else:
             tool_states[self.tool].size = max(2, self.size - change)
 
-        pos = self.mapFromGlobal(QCursor.pos())
-        self.canva.show_size_popup(pos, self.size)
-
+        self.canva.popup_value = self.size
         self.toolbar.update_icons()
         self.canva.update()
 
@@ -185,8 +183,10 @@ class Controller:
             self.set_tool("highlight")
 
     # direct brush settings
-    def set_drawing_mode(self):
-        if self.canva.board_color == (0, 0, 0, 0):
+    def set_mode(self, mode: str):
+        if mode == "view":
+            self.canva.board_color = (0, 0, 0, 0)
+        elif mode == "drawing" and self.canva.board_color == (0, 0, 0, 0):
             self.canva.board_color = (0, 0, 0, 50)
 
         self.canva.update()
@@ -203,6 +203,7 @@ class Controller:
 
         self.tool = tool
         self.toolbar.update_icons()
+        self.canva.update()
         self.canva.setCursor(tool_states[self.tool].cursor)
 
     def set_size(self, size: int):

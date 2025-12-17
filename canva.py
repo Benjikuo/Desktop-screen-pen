@@ -4,9 +4,40 @@
 from PySide2.QtGui import QColor, QPainter, QPen
 from PySide2.QtCore import Qt, QPoint, QRect
 from PySide2.QtWidgets import QWidget
+from PySide2.QtGui import QFont
 import copy
+import math
 
 from controller import BrushState
+
+
+def dist(a, b):
+    return math.hypot(a.x() - b.x(), a.y() - b.y())
+
+
+def line_hit(p, a, b, r):
+    ax, ay = a.x(), a.y()
+    bx, by = b.x(), b.y()
+    px, py = p.x(), p.y()
+
+    abx, aby = bx - ax, by - ay
+    apx, apy = px - ax, py - ay
+    ab_len = abx * abx + aby * aby
+
+    if ab_len == 0:
+        return dist(p, a) <= r
+
+    t = max(0, min(1, (apx * abx + apy * aby) / ab_len))
+    cx = ax + t * abx
+    cy = ay + t * aby
+
+    return math.hypot(px - cx, py - cy) <= r
+
+
+def rect_hit(p, rect, r):
+    x = max(rect.left(), min(p.x(), rect.right()))
+    y = max(rect.top(), min(p.y(), rect.bottom()))
+    return math.hypot(p.x() - x, p.y() - y) <= r
 
 
 class Canva(QWidget):
@@ -14,47 +45,56 @@ class Canva(QWidget):
         super().__init__(window)
 
         self.setMouseTracking(True)
+        self.setCursor(Qt.CrossCursor)
 
         self.board_color = (0, 0, 0, 50)
+        self.mouse_pos = None
 
         self.current_brush: BrushState | None = None
         self.start_pos: QPoint | None = None
         self.last_pos: QPoint | None = None
         self.current_points: list[QPoint] = []
-
         self.strokes: list[dict] = []
 
         self.history = []
         self.history_index = -1
         self.add_history_snapshot()
 
-    def mousePressEvent(self, event):
-        if event.button() != Qt.LeftButton:
-            return
+        self.popup_value = 0
 
-        brush = self.window().controller.get_brush()
-        self.begin_stroke(event.pos(), brush)
+    # mouse events
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            brush = self.controller.get_brush()
+            self.begin_stroke(event.pos(), brush)
+
+        elif event.button() == Qt.MiddleButton:
+            self.controller.quit()
+
+        elif event.button() == Qt.RightButton:
+            self.controller.set_mode("view")
 
     def mouseMoveEvent(self, event):
-        if not self.current_brush:
-            return
+        self.mouse_pos = event.pos()
+        self.update()
 
-        self.move_stroke(event.pos())
+        if event.buttons() & Qt.LeftButton:
+            self.move_stroke(event.pos())
 
     def mouseReleaseEvent(self, event):
-        if event.button() != Qt.LeftButton:
-            return
+        if event.button() == Qt.LeftButton:
+            self.end_stroke()
 
-        self.end_stroke()
+    def leaveEvent(self, event):
+        self.mouse_pos = None
+        self.update()
 
+    # stroke lifecycle
     def begin_stroke(self, pos: QPoint, brush: BrushState):
         self.current_brush = brush
         self.start_pos = pos
         self.last_pos = pos
         self.current_points = [pos]
-
-        if brush.tool == "eraser":
-            self.erase_at(pos)
 
         self.toolbar.hide()
         self.update()
@@ -67,6 +107,8 @@ class Canva(QWidget):
         if b.tool == "eraser":
             self.erase_at(pos)
             return
+        if b.tool == "crop_eraser":
+            pass
 
         if b.shape == "free":
             self.current_points.append(pos)
@@ -82,9 +124,9 @@ class Canva(QWidget):
 
         if b.tool != "eraser":
             stroke = {
-                "type": b.shape,
+                "shape": b.shape,
                 "color": b.color,
-                "width": b.size,
+                "size": b.size,
                 "round_cap": b.round_cap,
             }
 
@@ -107,23 +149,26 @@ class Canva(QWidget):
         self.toolbar.show()
         self.update()
 
+    # painting
     def paintEvent(self, event):
-        p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
 
-        self.draw_background(p)
+        self.draw_background(painter)
 
         for s in self.strokes:
-            self.draw_stroke(p, s)
+            self.draw_stroke(painter, s)
 
         if self.current_brush:
-            self.draw_preview(p)
+            self.draw_preview(painter)
+
+        self.draw_ui_overlay(painter)
 
         if self.board_color != (0, 0, 0, 0):
             pen = QPen(QColor(255, 120, 0))
             pen.setWidth(2)
-            p.setPen(pen)
-            p.drawRect(self.rect())
+            painter.setPen(pen)
+            painter.drawRect(self.rect())
 
     def draw_background(self, painter):
         r, g, b, a = self.board_color
@@ -134,19 +179,19 @@ class Canva(QWidget):
 
     def draw_stroke(self, painter, s):
         pen = QPen(s["color"])
-        pen.setWidth(s["width"])
+        pen.setWidth(s["size"])
         self._apply_cap_style(pen, bool(s.get("round_cap", False)))
         painter.setPen(pen)
 
-        if s["type"] == "free":
+        if s["shape"] == "free":
             pts = s["points"]
             for i in range(1, len(pts)):
                 painter.drawLine(pts[i - 1], pts[i])
 
-        elif s["type"] == "line":
+        elif s["shape"] == "line":
             painter.drawLine(s["start"], s["end"])
 
-        elif s["type"] == "rect":
+        elif s["shape"] == "rect":
             painter.drawRect(s["rect"])
 
     def draw_preview(self, painter):
@@ -154,9 +199,15 @@ class Canva(QWidget):
         if not b or b.tool == "eraser":
             return
 
-        pen = QPen(b.color)
-        pen.setWidth(b.size)
-        self._apply_cap_style(pen, b.round_cap)
+        if b.tool == "crop_eraser":
+            pen = QPen(QColor(200, 200, 200))
+            pen.setWidth(1)
+            pen.setStyle(Qt.DashLine)
+        else:
+            pen = QPen(b.color)
+            pen.setWidth(b.size)
+            self._apply_cap_style(pen, b.round_cap)
+
         painter.setPen(pen)
 
         if b.shape == "free" and len(self.current_points) > 1:
@@ -170,22 +221,49 @@ class Canva(QWidget):
             rect = QRect(self.start_pos, self.last_pos).normalized()
             painter.drawRect(rect)
 
+    def draw_ui_overlay(self, p: QPainter):
+        if self.mouse_pos and self.controller.tool == "eraser":
+            pen = QPen(QColor(255, 120, 0))
+            pen.setWidth(2)
+            p.setPen(pen)
+            p.setBrush(Qt.NoBrush)
+
+            r = self.controller.size / 2
+            p.drawEllipse(self.mouse_pos, r, r)
+
+        if self.mouse_pos and self.popup_value:
+            pen = QPen(QColor(255, 200, 80))
+            pen.setWidth(2)
+            p.setPen(pen)
+
+            r = self.popup_value / 2
+            p.drawEllipse(self.mouse_pos, r, r)
+
+            font = QFont("Microsoft JhengHei")
+            font.setPixelSize(15)
+            font.setBold(True)
+            p.setFont(font)
+
+            p.drawText(self.mouse_pos + QPoint(21, -21), f"{self.popup_value}px")
+
+            self.popup_value = 0
+
     def erase_at(self, pos):
         r = self.current_brush.size / 2
         self.strokes = [s for s in self.strokes if not self.stroke_hit(s, pos, r)]
         self.update()
 
     def stroke_hit(self, s, pos, r):
-        if s["type"] == "free":
+        if s["shape"] == "free":
             return any((p - pos).manhattanLength() < r for p in s["points"])
-        if s["type"] == "line":
+        if s["shape"] == "line":
             return False
-        if s["type"] == "rect":
+        if s["shape"] == "rect":
             return s["rect"].contains(pos)
         return False
 
+    # history
     def snapshot(self):
-
         return copy.deepcopy(self.strokes)
 
     def restore(self, snap):
@@ -213,4 +291,5 @@ class Canva(QWidget):
         self.history.clear()
         self.history_index = -1
         self.add_history_snapshot()
+
         self.update()
