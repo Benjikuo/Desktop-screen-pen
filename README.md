@@ -123,7 +123,7 @@ The **mouse wheel** up and down can control the **brush size**.
 <br>
 
 ## 📜 License
-This project is released under the **MIT License**.  
+Released under the **MIT License**.  
 You are free to use, modify, and share it for learning or personal projects.
 
 **Draw anything you can imagine!**
