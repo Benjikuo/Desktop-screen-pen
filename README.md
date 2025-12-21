@@ -41,6 +41,11 @@ Desktop pen/
 
 <br>
 
+## 🔗 Dependencies
+This project uses **PySide2 (Qt for Python)** for the GUI and **mss** for screen capture.
+
+<br>
+
 ## ⚙️ Requirements
 Install dependencies before running:
 ```bash
