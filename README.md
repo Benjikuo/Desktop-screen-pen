@@ -42,7 +42,7 @@ Desktop pen/
 <br>
 
 ## 🔗 Dependencies
-This project uses **PySide2 (Qt for Python)** for the GUI and **mss** for screen capture.
+This project uses **PySide2 (Qt5 bindings for Python)** for the GUI and **mss** for screen capture.
 
 <br>
 
