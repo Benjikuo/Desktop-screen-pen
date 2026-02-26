@@ -1,4 +1,8 @@
 # Desktop-screen-pen
+
+![License](https://img.shields.io/badge/License-MIT-yellow)
+![Language](https://img.shields.io/badge/Language-Python-blue)
+
 A tool that allows users to draw anywhere on the screen.
 
 <p>
