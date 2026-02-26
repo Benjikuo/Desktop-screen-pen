@@ -197,6 +197,8 @@ class Controller:
         self.set_shape(shape)
         self.set_color(color)
 
+        self.set_mode("drawing")
+
     def set_tool(self, tool: str):
         if tool not in tool_states:
             raise ValueError(f"Invalid tool: {tool}")
@@ -206,12 +208,16 @@ class Controller:
         self.canva.update()
         self.canva.setCursor(tool_states[self.tool].cursor)
 
+        self.set_mode("drawing")
+
     def set_size(self, size: int):
         if self.tool == "crop_eraser":
             self.set_tool("eraser")
 
         tool_states[self.tool].size = size
         self.toolbar.update_icons()
+
+        self.set_mode("drawing")
 
     def set_shape(self, shape: str):
         if self.tool == "crop_eraser":
@@ -227,6 +233,8 @@ class Controller:
 
         tool_states[self.tool].shape = shape
         self.toolbar.update_icons()
+
+        self.set_mode("drawing")
 
     def set_color(self, color_name: str):
         eraser_tool = ["eraser", "crop_eraser"]
@@ -247,6 +255,8 @@ class Controller:
 
         tool_states[self.tool].color = color
         self.toolbar.update_icons()
+
+        self.set_mode("drawing")
 
     # direct actions
     def save(self, back=None):
