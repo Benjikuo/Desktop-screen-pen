@@ -326,9 +326,15 @@ class Canva(QWidget):
 
     # history
     def add_history_snapshot(self):
+        max_history = 50
+
         self.history_index += 1
         self.history = self.history[: self.history_index]
         self.history.append(copy.deepcopy(self.strokes))
+
+        if len(self.history) > max_history:
+            self.history.pop(0)
+            self.history_index -= 1
 
     def restore(self, snap):
         self.strokes = copy.deepcopy(snap)
@@ -357,3 +363,83 @@ class Canva(QWidget):
         self.strokes.clear()
         self.add_history_snapshot()
         self.update()
+
+    # things to json
+    def point_to_json(self, p):
+        return [p.x(), p.y()]
+
+    def rect_to_json(self, r):
+        return [r.x(), r.y(), r.width(), r.height()]
+
+    def color_to_json(self, c):
+        return [c.red(), c.green(), c.blue(), c.alpha()]
+
+    def stroke_to_json(self, s):
+        data = {
+            "shape": s["shape"],
+            "color": self.color_to_json(s["color"]),
+            "size": s["size"],
+            "round_cap": s.get("round_cap", False),
+        }
+
+        if s["shape"] == "free":
+            data["points"] = [self.point_to_json(p) for p in s["points"]]
+
+        elif s["shape"] == "line":
+            data["start"] = self.point_to_json(s["start"])
+            data["end"] = self.point_to_json(s["end"])
+
+        elif s["shape"] == "rect":
+            data["rect"] = self.rect_to_json(s["rect"])
+
+        return data
+
+    # json to things
+    def json_to_point(self, data):
+        return QPoint(data[0], data[1])
+
+    def json_to_rect(self, data):
+        return QRect(data[0], data[1], data[2], data[3])
+
+    def json_to_color(self, data):
+        return QColor(data[0], data[1], data[2], data[3])
+
+    def json_to_stroke(self, data):
+        stroke = {
+            "shape": data["shape"],
+            "color": self.json_to_color(data["color"]),
+            "size": data["size"],
+            "round_cap": data.get("round_cap", False),
+        }
+
+        if data["shape"] == "free":
+            stroke["points"] = [self.json_to_point(p) for p in data["points"]]
+
+        elif data["shape"] == "line":
+            stroke["start"] = self.json_to_point(data["start"])
+            stroke["end"] = self.json_to_point(data["end"])
+
+        elif data["shape"] == "rect":
+            stroke["rect"] = self.json_to_rect(data["rect"])
+
+        return stroke
+
+    # export and import
+    def export_json_data(self):
+        return {
+            "app": "Desktop-screen-pen",
+            "board_color": list(self.board_color),
+            "history": [
+                [self.stroke_to_json(s) for s in snap] for snap in self.history
+            ],
+            "history_index": self.history_index,
+        }
+
+    def import_json_data(self, data):
+        self.board_color = tuple(data.get("board_color", (0, 0, 0, 50)))
+        self.history = [
+            [self.json_to_stroke(s) for s in snap] for snap in data.get("history", [[]])
+        ]
+        self.history_index = data.get("history_index", len(self.history) - 1)
+
+        self.restore(self.history[self.history_index])

@@ -92,8 +92,7 @@ class Toolbar(QFrame):
         self.controller = controller
 
         self.setFixedHeight(72)
-        self.setStyleSheet(
-            """
+        self.setStyleSheet("""
             QFrame {
                 background-color: #333333;
                 border-radius: 12px;
@@ -126,8 +125,7 @@ class Toolbar(QFrame):
             QMenu::item:selected {
                 background-color: #555555;
             }
-            """
-        )
+            """)
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
@@ -213,6 +211,8 @@ class Toolbar(QFrame):
         save_menu.addAction(
             " ....  Transparent background", lambda: controller.save("trans")
         )
+        save_menu.addAction("💾 Export JSON", lambda: controller.export_json())
+        save_menu.addAction("📂 Import JSON", lambda: controller.import_json())
         btn_save.setMenu(save_menu)
 
         # undo

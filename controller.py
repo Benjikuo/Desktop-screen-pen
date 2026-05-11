@@ -1,12 +1,13 @@
 # controller.py
 # type: ignore
 
-from PySide2.QtWidgets import QApplication
+from PySide2.QtWidgets import QApplication, QFileDialog
 from PySide2.QtGui import QColor
 from PySide2.QtCore import Qt
 from dataclasses import dataclass
 from mss.tools import to_png
 from mss import mss
+import json
 import os
 
 
@@ -282,6 +283,38 @@ class Controller:
         self.canva.board_color = old
         self.toolbar.show()
         self.canva.update()
+
+    def export_json(self):
+        download = os.path.join(os.path.expanduser("~"), "Downloads")
+        default_path = os.path.join(download, "drawing.json")
+
+        path, _ = QFileDialog.getSaveFileName(
+            self.window, "Save Drawing JSON", default_path, "JSON Files (*.json)"
+        )
+
+        if not path:
+            return
+
+        if not path.lower().endswith(".json"):
+            path += ".json"
+
+        data = self.canva.export_json_data()
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+
+    def import_json(self):
+        download = os.path.join(os.path.expanduser("~"), "Downloads")
+
+        path, _ = QFileDialog.getOpenFileName(
+            self.window, "Open Drawing JSON", download, "JSON Files (*.json)"
+        )
+
+        if not path:
+            return
+
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        self.canva.import_json_data(data)
 
     def undo(self):
         self.canva.undo()
